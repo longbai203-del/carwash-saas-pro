@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>CarWash Pro | 洗车店管理系统</title>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { transition: all 0.2s ease; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f9ff; }
+        .toast-custom { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293bcc; backdrop-filter: blur(12px); color: white; padding: 10px 24px; border-radius: 40px; font-size: 14px; z-index: 9999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal-glass { background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-radius: 28px; box-shadow: 0 20px 25px -12px rgba(0,0,0,0.08); border: 1px solid rgba(0,145,213,0.12); padding: 24px; }
+        .btn-primary { background: linear-gradient(105deg, #0091D5, #38bdf8); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,145,213,0.4); }
+        .btn-success { background: linear-gradient(105deg, #16a34a, #4ade80); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(22,163,74,0.4); }
+        .btn-danger { background: linear-gradient(105deg, #dc2626, #f87171); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(220,38,38,0.4); }
+        .form-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 16px; background: white; }
+        .form-input:focus { outline: none; border-color: #0091D5; box-shadow: 0 0 0 3px rgba(0,145,213,0.1); }
+        .sidebar-link { transition: all 0.2s; border-radius: 14px; margin: 4px 12px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; color: #64748b; cursor: pointer; }
+        .sidebar-link:hover { background: rgba(0,145,213,0.08); color: #0091D5; }
+        .nav-item-active { background: rgba(0,145,213,0.12); border-right: 4px solid #0091D5; color: #0284c7; font-weight: 600; }
+        .role-badge { font-size: 10px; padding: 2px 10px; border-radius: 20px; }
+        .role-owner { background: #7c3aed; color: white; }
+        .role-manager { background: #f59e0b; color: white; }
+        .role-cashier { background: #3b82f6; color: white; }
+        .role-employee { background: #8b5cf6; color: white; }
+        .hidden { display: none !important; }
+        .stat-number { font-size: 28px; font-weight: 700; color: #0f172a; }
+    </style>
+</head>
+<body>
+
+<!-- 登录模态框 -->
+<div id="loginModal" class="modal-glass">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-car-wash text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-blue-600">CarWash Pro</h1>
+            <p class="text-gray-500 mt-1">洗车店管理系统</p>
+        </div>
+        <div>
+            <div class="mb-3">
+                <label class="text-sm font-medium text-gray-600">Username</label>
+                <input type="text" id="loginUsername" value="admin" class="w-full p-3 border border-gray-200 rounded-xl mt-1">
+            </div>
+            <div class="mb-3">
+                <label class="text-sm font-medium text-gray-600">Password</label>
+                <input type="password" id="loginPassword" value="admin123" class="w-full p-3 border border-gray-200 rounded-xl mt-1">
+            </div>
+            <button onclick="authLogin()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 transition">Login</button>
+            <div class="text-center mt-3 text-xs text-gray-400">Default: admin / admin123</div>
+        </div>
+    </div>
+</div>
+
+<!-- 主应用 -->
+<div id="appContainer" class="hidden flex h-screen overflow-hidden">
+    <!-- 侧边栏 -->
+    <aside class="w-64 bg-white shadow-xl z-20 flex flex-col border-r border-gray-100">
+        <div class="p-5 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                <i class="fas fa-car-wash text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-blue-600">CarWash Pro</h1>
+                <p class="text-xs text-gray-400">智能管理系统</p>
+            </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+            <a href="#" data-nav="dashboard" class="sidebar-link nav-item-active"><i class="fas fa-chart-line w-5"></i><span>Dashboard</span></a>
+            <a href="#" data-nav="cashier" class="sidebar-link"><i class="fas fa-cash-register w-5"></i><span>POS / 收银</span></a>
+            <a href="#" data-nav="services" class="sidebar-link"><i class="fas fa-wrench w-5"></i><span>Services</span></a>
+            <a href="#" data-nav="members" class="sidebar-link"><i class="fas fa-users w-5"></i><span>Customers</span></a>
+            <a href="#" data-nav="inventory" class="sidebar-link"><i class="fas fa-boxes w-5"></i><span>Inventory</span></a>
+            <a href="#" data-nav="attendance" class="sidebar-link"><i class="fas fa-clock w-5"></i><span>Attendance</span></a>
+            <a href="#" data-nav="reports" class="sidebar-link"><i class="fas fa-chart-bar w-5"></i><span>Reports</span></a>
+            <a href="#" data-nav="employees" class="sidebar-link"><i class="fas fa-user-tie w-5"></i><span>Employees</span></a>
+            <a href="#" data-nav="settings" class="sidebar-link"><i class="fas fa-cog w-5"></i><span>Settings</span></a>
+        </nav>
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-robot text-blue-500 text-xl"></i>
+                <div><p class="text-xs text-gray-400">AI Assistant</p><p class="text-sm font-semibold">Dola AI</p></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容 -->
+    <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+        <!-- 顶部栏 -->
+        <header class="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
+            <h2 id="currentPageTitle" class="text-xl font-bold text-gray-800">Dashboard</h2>
+            <div class="flex items-center gap-4">
+                <span id="currentUserSpan" class="text-sm font-semibold">Admin</span>
+                <span id="currentRoleSpan" class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">admin</span>
+                <button onclick="logout()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- Dashboard -->
+            <div id="moduleDashboard" class="module-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div class="glass-card p-5">
+                        <p class="text-gray-500 text-sm">Total Sales</p>
+                        <h3 class="stat-number" id="totalSalesValue">0.00 SAR</h3>
+                    </div>
+                    <div class="glass-card p-5">
+                        <p class="text-gray-500 text-sm">Today's Orders</p>
+                        <h3 class="stat-number" id="todayOrdersValue">0</h3>
+                    </div>
+                    <div class="glass-card p-5">
+                        <p class="text-gray-500 text-sm">Customers</p>
+                        <h3 class="stat-number" id="customersValue">0</h3>
+                    </div>
+                    <div class="glass-card p-5">
+                        <p class="text-gray-500 text-sm">Inventory</p>
+                        <h3 class="stat-number" id="inventoryValue">0</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Service Statistics</h3>
+                        <canvas id="serviceStatsChart" height="180"></canvas>
+                    </div>
+                    <div class="glass-card p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Revenue Trend</h3>
+                        <canvas id="monthlyRevenueChart" height="180"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-5">
+                        <h3 class="font-bold text-gray-800 mb-3">Today's Orders</h3>
+                        <div id="todayOrdersPreview" class="space-y-2"></div>
+                    </div>
+                    <div class="glass-card p-5">
+                        <h3 class="font-bold text-gray-800 mb-3">Top Services</h3>
+                        <div id="topServicesContent" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POS -->
+            <div id="moduleCashier" class="module-content hidden max-w-6xl mx-auto">
+                <div class="glass-card p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-sm font-medium">Vehicle Type</label>
+                            <select id="vehicleSelect" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"></select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Extra Service</label>
+                            <select id="serviceSelect" class="w-full mt-1 p-3 border rounded-xl"></select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Custom Amount (SAR)</label>
+                            <input type="number" id="priceInput" class="w-full mt-1 p-3 border-2 border-blue-300 rounded-xl text-xl font-bold" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="text-sm font-medium">Payment Method</label>
+                            <select id="paymentSelect" class="w-full p-3 border rounded-xl">
+                                <option>Cash</option><option>Card</option><option>mada</option><option>Apple Pay</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Employee</label>
+                            <select id="staffSelect" class="w-full p-3 border rounded-xl"></select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">License Plate</label>
+                            <input id="plateInput" class="w-full p-3 border rounded-xl uppercase" placeholder="ABC123">
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-blue-50 p-5 rounded-2xl">
+                        <div class="flex justify-between"><span>Subtotal</span><span id="subtotalSpan" class="font-mono">0.00 SAR</span></div>
+                        <div class="flex justify-between"><span>VAT (15%)</span><span id="vatSpan">0.00 SAR</span></div>
+                        <div class="flex justify-between text-2xl font-bold text-blue-600 pt-2 border-t"><span>Total</span><span id="totalSpan">0.00 SAR</span></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                        <button onclick="saveOrder()" class="btn-primary py-3 rounded-xl font-bold"><i class="fas fa-save"></i> Save</button>
+                        <button onclick="printReceipt()" class="bg-purple-600 hover:bg-purple-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-print"></i> Invoice</button>
+                        <button onclick="voiceTotal()" class="bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-volume-up"></i> Voice</button>
+                    </div>
+                </div>
+                <div class="glass-card p-5 mt-5">
+                    <h3 class="font-bold">Today's Orders</h3>
+                    <div id="todayOrdersList" class="max-h-72 overflow-auto mt-2 space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Services -->
+            <div id="moduleServices" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-4 text-blue-600">Service Management</h2>
+                    <div class="flex gap-3 mb-4">
+                        <input id="newServiceName" placeholder="Service Name" class="flex-1 p-3 border rounded-xl">
+                        <input id="newServicePrice" placeholder="Price" class="w-28 p-3 border rounded-xl" type="number">
+                        <button onclick="addService()" class="btn-primary px-4 rounded-xl">Add</button>
+                    </div>
+                    <div id="servicesList" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Customers -->
+            <div id="moduleMembers" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Customer Management</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                        <input id="memberPhone" placeholder="Phone" class="p-3 border rounded-xl">
+                        <input id="memberName" placeholder="Name" class="p-3 border rounded-xl">
+                        <input id="memberPlate" placeholder="Plate" class="p-3 border rounded-xl">
+                        <input id="rechargeAmount" placeholder="Recharge" class="p-3 border rounded-xl" type="number">
+                        <button onclick="addCustomer()" class="btn-success py-3 rounded-xl font-bold col-span-2">Add / Recharge</button>
+                    </div>
+                    <div id="membersList" class="mt-5 space-y-2 max-h-96 overflow-auto"></div>
+                </div>
+            </div>
+
+            <!-- Inventory -->
+            <div id="moduleInventory" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Inventory Management</h2>
+                    <div class="flex gap-3 mt-4">
+                        <input id="stockName" placeholder="Product" class="flex-1 p-3 border rounded-xl">
+                        <input id="stockQty" placeholder="Qty" class="w-28 p-3 border rounded-xl" type="number">
+                        <input id="stockCost" placeholder="Cost" class="w-28 p-3 border rounded-xl" type="number">
+                        <button onclick="addStockItem()" class="btn-primary px-5 rounded-xl">Add</button>
+                    </div>
+                    <div id="inventoryList" class="mt-5 space-y-2 max-h-96 overflow-auto"></div>
+                </div>
+            </div>
+
+            <!-- Attendance -->
+            <div id="moduleAttendance" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Attendance</h2>
+                    <select id="attendanceStaff" class="w-full p-3 border rounded-xl mt-3"></select>
+                    <div class="flex gap-3 mt-3">
+                        <button onclick="clockIn()" class="bg-emerald-600 text-white px-5 py-2 rounded-xl">Clock In</button>
+                        <button onclick="clockOut()" class="bg-amber-500 text-white px-5 py-2 rounded-xl">Clock Out</button>
+                    </div>
+                    <div id="attendanceList" class="mt-5 space-y-1 max-h-72 overflow-auto"></div>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div id="moduleReports" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Reports</h2>
+                    <div class="flex gap-3 mt-4">
+                        <button onclick="exportExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg">Export Excel</button>
+                        <button onclick="clearAllOrders()" class="bg-red-500 text-white px-4 py-2 rounded-lg">Clear Orders</button>
+                    </div>
+                    <div id="reportTableBody" class="mt-4 text-sm max-h-72 overflow-auto"></div>
+                </div>
+            </div>
+
+            <!-- Employees -->
+            <div id="moduleEmployees" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Employee Management</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                        <input id="empUsername" placeholder="Username" class="p-3 border rounded-xl">
+                        <input id="empPassword" placeholder="Password" class="p-3 border rounded-xl" type="password">
+                        <select id="empRole" class="p-3 border rounded-xl">
+                            <option value="owner">Owner</option>
+                            <option value="manager">Manager</option>
+                            <option value="cashier">Cashier</option>
+                            <option value="employee">Employee</option>
+                        </select>
+                        <button onclick="addEmployee()" class="btn-primary py-3 rounded-xl font-bold">Add</button>
+                    </div>
+                    <div id="employeesList" class="mt-5 space-y-2 max-h-96 overflow-auto"></div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="moduleSettings" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600">Settings</h2>
+                    <div class="space-y-3 mt-4">
+                        <div><label class="text-sm font-medium">Shop Name</label><input id="shopName" class="w-full p-2 border rounded"></div>
+                        <div><label class="text-sm font-medium">Tax Number</label><input id="shopTaxId" class="w-full p-2 border rounded"></div>
+                        <div><label class="text-sm font-medium">VAT Rate (%)</label><input id="vatRateInput" class="w-full p-2 border rounded" type="number"></div>
+                        <button onclick="saveSettings()" class="btn-primary py-2 rounded-lg w-full">Save Settings</button>
+                        <button onclick="resetAll()" class="btn-danger py-2 rounded-lg w-full">Reset All Data</button>
+                        <button onclick="exportBackup()" class="bg-gray-700 text-white py-2 rounded-lg w-full">Export Backup</button>
+                        <button onclick="importBackup()" class="bg-gray-600 text-white py-2 rounded-lg w-full">Import Backup</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // ==================== 数据层 ====================
+    let currentUser = null;
+    let allUsers = [];
+    let allOrders = [];
+    let allCustomers = [];
+    let allInventory = [];
+    let allAttendance = [];
+    let config = {};
+    let serviceChart = null;
+    let revenueChart = null;
+
+    function loadData() {
+        try {
+            allUsers = JSON.parse(localStorage.getItem('cw_users')) || [
+                { id: '1', username: 'admin', password: CryptoJS.SHA256('admin123').toString(), role: 'owner', name: 'Admin' }
+            ];
+            allOrders = JSON.parse(localStorage.getItem('cw_orders')) || [];
+            allCustomers = JSON.parse(localStorage.getItem('cw_customers')) || [];
+            allInventory = JSON.parse(localStorage.getItem('cw_inventory')) || [];
+            allAttendance = JSON.parse(localStorage.getItem('cw_attendance')) || [];
+            config = JSON.parse(localStorage.getItem('cw_config')) || {
+                vatRate: 15,
+                shopName: 'Car Wash Pro',
+                shopTaxId: '310245678900003',
+                vehicleTypes: [
+                    { name: 'Small Car', price: 30 },
+                    { name: 'Medium Car', price: 45 },
+                    { name: 'Large Car', price: 60 },
+                    { name: 'SUV', price: 75 }
+                ],
+                serviceTypes: [
+                    { name: 'Basic', price: 0 },
+                    { name: 'Deep Wash', price: 25 },
+                    { name: 'Exterior Polish', price: 35 },
+                    { name: 'Interior Shine', price: 40 },
+                    { name: 'Full Detail', price: 80 }
+                ]
+            };
+        } catch(e) {
+            console.error('Load error:', e);
+        }
+        saveData();
+    }
+
+    function saveData() {
+        try {
+            localStorage.setItem('cw_users', JSON.stringify(allUsers));
+            localStorage.setItem('cw_orders', JSON.stringify(allOrders));
+            localStorage.setItem('cw_customers', JSON.stringify(allCustomers));
+            localStorage.setItem('cw_inventory', JSON.stringify(allInventory));
+            localStorage.setItem('cw_attendance', JSON.stringify(allAttendance));
+            localStorage.setItem('cw_config', JSON.stringify(config));
+        } catch(e) {
+            console.error('Save error:', e);
+        }
+    }
+
+    // ==================== 登录 ====================
+    function authLogin() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        loadData();
+        const user = allUsers.find(u => u.username === username);
+        if (!user) { showToast('User not found'); return; }
+        if (user.password !== CryptoJS.SHA256(password).toString()) { showToast('Wrong password'); return; }
+        currentUser = user;
+        localStorage.setItem('cw_session', JSON.stringify({ id: user.id, username: user.username }));
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('appContainer').classList.remove('hidden');
+        document.getElementById('currentUserSpan').textContent = user.name || user.username;
+        document.getElementById('currentRoleSpan').textContent = user.role;
+        refreshAll();
+        switchTab('dashboard');
+        showToast('Welcome ' + (user.name || user.username));
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('cw_session');
+        document.getElementById('appContainer').classList.add('hidden');
+        document.getElementById('loginModal').style.display = 'flex';
+        showToast('Logged out');
+    }
+
+    // ==================== 导航 ====================
+    function switchTab(tab) {
+        document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById('module' + tab.charAt(0).toUpperCase() + tab.slice(1));
+        if (target) target.classList.remove('hidden');
+        document.querySelectorAll('[data-nav]').forEach(el => {
+            el.classList.remove('nav-item-active');
+            if (el.dataset.nav === tab) el.classList.add('nav-item-active');
+        });
+        document.getElementById('currentPageTitle').textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+        if (tab === 'dashboard') refreshDashboard();
+        if (tab === 'cashier') { renderSelects(); updatePrice(); refreshOrders(); }
+        if (tab === 'members') refreshCustomers();
+        if (tab === 'inventory') refreshInventory();
+        if (tab === 'attendance') refreshAttendance();
+        if (tab === 'employees') refreshEmployees();
+        if (tab === 'reports') refreshReports();
+        if (tab === 'services') refreshServices();
+    }
+
+    document.querySelectorAll('[data-nav]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(el.dataset.nav);
+        });
+    });
+
+    // ==================== 刷新函数 ====================
+    function refreshDashboard() {
+        const total = allOrders.reduce((s, o) => s + (o.total || 0), 0);
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = allOrders.filter(o => (o.date || '').startsWith(today));
+        document.getElementById('totalSalesValue').textContent = total.toFixed(2) + ' SAR';
+        document.getElementById('todayOrdersValue').textContent = todayOrders.length;
+        document.getElementById('customersValue').textContent = allCustomers.length;
+        document.getElementById('inventoryValue').textContent = allInventory.reduce((s, i) => s + (i.qty || 0), 0);
+        
+        // Today orders preview
+        const preview = document.getElementById('todayOrdersPreview');
+        preview.innerHTML = todayOrders.slice(0, 5).map(o => 
+            `<div class="flex justify-between p-2 bg-gray-50 rounded-lg"><span>${o.plate || 'N/A'}</span><span>${o.total || 0} SAR</span></div>`
+        ).join('') || '<div class="text-gray-400 text-center">No orders today</div>';
+        
+        // Top services
+        const counts = {};
+        allOrders.forEach(o => { const n = o.service || 'Basic'; counts[n] = (counts[n] || 0) + 1; });
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        document.getElementById('topServicesContent').innerHTML = sorted.map(([name, count]) => 
+            `<div class="flex justify-between"><span>${name}</span><span>${count} orders</span></div>`
+        ).join('') || '<div class="text-gray-400 text-center">No data</div>';
+        
+        // Charts
+        initCharts();
+    }
+
+    function refreshOrders() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = allOrders.filter(o => (o.date || '').startsWith(today));
+        const list = document.getElementById('todayOrdersList');
+        list.innerHTML = todayOrders.slice(0, 20).map(o => 
+            `<div class="flex justify-between p-2 border-b"><span>${o.time || ''}</span><span>${o.plate || 'N/A'}</span><span>${o.total || 0} SAR</span></div>`
+        ).join('') || '<div class="text-center text-gray-400">No orders</div>';
+    }
+
+    function refreshCustomers() {
+        const list = document.getElementById('membersList');
+        list.innerHTML = allCustomers.map(c => 
+            `<div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span><strong>${c.name || 'Unknown'}</strong><br><small>${c.phone || ''} | ${c.plate || ''}</small></span><span>${c.balance || 0} SAR</span></div>`
+        ).join('') || '<div class="text-center text-gray-400">No customers</div>';
+    }
+
+    function refreshInventory() {
+        const list = document.getElementById('inventoryList');
+        list.innerHTML = allInventory.map(i => 
+            `<div class="flex justify-between bg-gray-50 p-3 rounded"><span>${i.name}</span><span>Qty: ${i.qty} | Cost: ${i.cost || 0}</span></div>`
+        ).join('') || '<div class="text-center text-gray-400">No inventory</div>';
+    }
+
+    function refreshAttendance() {
+        const list = document.getElementById('attendanceList');
+        list.innerHTML = allAttendance.slice(-20).reverse().map(a => 
+            `<div class="text-sm p-2 bg-gray-50 rounded">${a.staff} · ${a.type} · ${a.time}</div>`
+        ).join('') || '<div class="text-center text-gray-400">No records</div>';
+    }
+
+    function refreshEmployees() {
+        const list = document.getElementById('employeesList');
+        list.innerHTML = allUsers.map(u => 
+            `<div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span><strong>${u.name || u.username}</strong> <span class="role-badge role-${u.role}">${u.role}</span></span><span>${u.username}</span></div>`
+        ).join('') || '<div class="text-center text-gray-400">No employees</div>';
+    }
+
+    function refreshReports() {
+        const table = document.getElementById('reportTableBody');
+        table.innerHTML = allOrders.slice(0, 50).map(o => 
+            `<div class="flex justify-between p-1 border-b text-sm"><span>${o.date || ''}</span><span>${o.plate || 'N/A'}</span><span>${o.total || 0} SAR</span></div>`
+        ).join('') || '<div class="text-center text-gray-400">No data</div>';
+    }
+
+    function refreshServices() {
+        const list = document.getElementById('servicesList');
+        list.innerHTML = config.serviceTypes.map((s, i) => 
+            `<div class="flex justify-between bg-gray-50 p-3 rounded"><span>${s.name}</span><span>${s.price} SAR <button onclick="removeService(${i})" class="text-red-500 ml-2"><i class="fas fa-trash"></i></button></span></div>`
+        ).join('');
+    }
+
+    function refreshAll() {
+        refreshDashboard();
+        refreshOrders();
+        refreshCustomers();
+        refreshInventory();
+        refreshAttendance();
+        refreshEmployees();
+        refreshReports();
+        refreshServices();
+        renderSelects();
+        updateStaffSelects();
+    }
+
+    // ==================== POS 功能 ====================
+    function renderSelects() {
+        const vSel = document.getElementById('vehicleSelect');
+        vSel.innerHTML = config.vehicleTypes.map(v => 
+            `<option value="${v.price}">${v.name} (${v.price} SAR)</option>`
+        ).join('');
+        const sSel = document.getElementById('serviceSelect');
+        sSel.innerHTML = '<option value="0">None</option>' + 
+            config.serviceTypes.map(s => `<option value="${s.price}">${s.name} (+${s.price} SAR)</option>`).join('');
+        updatePrice();
+    }
+
+    function updateStaffSelects() {
+        const staff = allUsers.filter(u => u.role !== 'owner').map(u => u.name || u.username);
+        ['staffSelect', 'attendanceStaff'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel) {
+                sel.innerHTML = staff.map(s => `<option value="${s}">${s}</option>`).join('') || 
+                    '<option value="">No staff</option>';
+            }
+        });
+    }
+
+    function updatePrice() {
+        const vehicle = parseFloat(document.getElementById('vehicleSelect').value) || 0;
+        const service = parseFloat(document.getElementById('serviceSelect').value) || 0;
+        const custom = parseFloat(document.getElementById('priceInput').value) || 0;
+        const base = custom > 0 ? custom : vehicle + service;
+        const vat = base * (config.vatRate || 15) / 100;
+        document.getElementById('subtotalSpan').textContent = base.toFixed(2) + ' SAR';
+        document.getElementById('vatSpan').textContent = vat.toFixed(2) + ' SAR';
+        document.getElementById('totalSpan').textContent = (base + vat).toFixed(2) + ' SAR';
+    }
+
+    document.getElementById('vehicleSelect')?.addEventListener('change', updatePrice);
+    document.getElementById('serviceSelect')?.addEventListener('change', updatePrice);
+    document.getElementById('priceInput')?.addEventListener('input', updatePrice);
+
+    function saveOrder() {
+        if (!currentUser) { showToast('Please login'); return; }
+        const plate = document.getElementById('plateInput').value.trim().toUpperCase();
+        if (!plate) { showToast('Enter plate number'); return; }
+        const total = parseFloat(document.getElementById('totalSpan').textContent) || 0;
+        if (total <= 0) { showToast('Amount must be > 0'); return; }
+        const order = {
+            id: Date.now().toString(),
+            plate: plate,
+            total: total,
+            subtotal: parseFloat(document.getElementById('subtotalSpan').textContent) || 0,
+            vat: parseFloat(document.getElementById('vatSpan').textContent) || 0,
+            payment: document.getElementById('paymentSelect').value,
+            staff: document.getElementById('staffSelect').value,
+            service: document.getElementById('serviceSelect').selectedOptions[0]?.text || 'None',
+            date: new Date().toISOString().split('T')[0],
+            time: new Date().toLocaleTimeString(),
+            created_at: new Date().toISOString()
+        };
+        allOrders.unshift(order);
+        saveData();
+        refreshAll();
+        showToast('✅ Order saved: ' + total.toFixed(2) + ' SAR');
+        document.getElementById('plateInput').value = '';
+        document.getElementById('priceInput').value = '';
+        updatePrice();
+        
+        // 更新客户积分
+        const cust = allCustomers.find(c => c.plate === plate);
+        if (cust) { cust.points = (cust.points || 0) + 1; saveData(); }
+    }
+
+    function printReceipt() {
+        const total = document.getElementById('totalSpan').textContent;
+        const plate = document.getElementById('plateInput').value || 'N/A';
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html><head><title>Invoice</title>
+            <style>body{font-family:sans-serif;padding:40px;text-align:center;}
+            .inv{max-width:400px;margin:auto;border:1px solid #ddd;padding:30px;border-radius:12px;}
+            .tot{font-size:28px;font-weight:bold;color:#0091D5;}
+</style></head><body>
+<div class="inv"><h2>🧼 CarWash Pro</h2>
+<p>${config.shopName}</p>
+<p>Tax: ${config.shopTaxId}</p><hr>
+<p><strong>Plate:</strong> ${plate}</p>
+<p><strong>Date:</strong> ${new Date().toLocaleString()}</p><hr>
+<p class="tot">Total: ${total}</p>
+<p style="font-size:12px;color:#999;">Thank you</p></div>
+<script>setTimeout(()=>window.print(),300)<\/script>
+</body></html>`);
+        win.document.close();
+    }
+
+    function voiceTotal() {
+        const total = document.getElementById('totalSpan').textContent;
+        const msg = new SpeechSynthesisUtterance('Total amount ' + total);
+        window.speechSynthesis.speak(msg);
+    }
+
+    // ==================== 客户管理 ====================
+    function addCustomer() {
+        if (!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'manager')) {
+            showToast('Only manager+ can add customers');
+            return;
+        }
+        const phone = document.getElementById('memberPhone').value.trim();
+        const name = document.getElementById('memberName').value.trim();
+        const plate = document.getElementById('memberPlate').value.trim().toUpperCase();
+        const amount = parseFloat(document.getElementById('rechargeAmount').value) || 0;
+        if (!phone || !name || !plate) { showToast('Fill all fields'); return; }
+        let existing = allCustomers.find(c => c.phone === phone || c.plate === plate);
+        if (existing) {
+            existing.balance = (existing.balance || 0) + amount;
+            existing.name = name;
+        } else {
+            allCustomers.push({ id: Date.now().toString(), phone, name, plate, balance: amount, points: 0 });
+        }
+        saveData();
+        refreshCustomers();
+        showToast('Customer saved / Recharged ' + amount + ' SAR');
+        document.getElementById('memberPhone').value = '';
+        document.getElementById('memberName').value = '';
+        document.getElementById('memberPlate').value = '';
+        document.getElementById('rechargeAmount').value = '';
+    }
+
+    // ==================== 库存管理 ====================
+    function addStockItem() {
+        if (!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'manager')) {
+            showToast('Only manager+ can manage inventory');
+            return;
+        }
+        const name = document.getElementById('stockName').value.trim();
+        const qty = parseInt(document.getElementById('stockQty').value) || 0;
+        const cost = parseFloat(document.getElementById('stockCost').value) || 0;
+        if (!name || qty <= 0) { showToast('Enter valid product'); return; }
+        let existing = allInventory.find(i => i.name === name);
+        if (existing) { existing.qty += qty; } 
+        else { allInventory.push({ id: Date.now().toString(), name, qty, cost }); }
+        saveData();
+        refreshInventory();
+        showToast('Stock updated: ' + name + ' +' + qty);
+        document.getElementById('stockName').value = '';
+        document.getElementById('stockQty').value = '';
+        document.getElementById('stockCost').value = '';
+    }
+
+    // ==================== 考勤 ====================
+    function clockIn() {
+        const staff = document.getElementById('attendanceStaff').value;
+        if (!staff) { showToast('Select staff'); return; }
+        allAttendance.push({ id: Date.now().toString(), staff, type: 'Clock In', time: new Date().toLocaleString() });
+        saveData();
+        refreshAttendance();
+        showToast(staff + ' Clocked In');
+    }
+
+    function clockOut() {
+        const staff = document.getElementById('attendanceStaff').value;
+        if (!staff) { showToast('Select staff'); return; }
+        allAttendance.push({ id: Date.now().toString(), staff, type: 'Clock Out', time: new Date().toLocaleString() });
+        saveData();
+        refreshAttendance();
+        showToast(staff + ' Clocked Out');
+    }
+
+    // ==================== 员工管理 ====================
+    function addEmployee() {
+        if (!currentUser || currentUser.role !== 'owner') { showToast('Only owner can add employees'); return; }
+        const username = document.getElementById('empUsername').value.trim();
+        const password = document.getElementById('empPassword').value.trim();
+        const role = document.getElementById('empRole').value;
+        if (!username || !password) { showToast('Enter username and password'); return; }
+        if (allUsers.find(u => u.username === username)) { showToast('Username exists'); return; }
+        allUsers.push({ id: Date.now().toString(), username, password: CryptoJS.SHA256(password).toString(), role, name: username });
+        saveData();
+        refreshEmployees();
+        updateStaffSelects();
+        showToast('Employee added: ' + username);
+        document.getElementById('empUsername').value = '';
+        document.getElementById('empPassword').value = '';
+    }
+
+    // ==================== 服务管理 ====================
+    function addService() {
+        if (!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'manager')) {
+            showToast('Only manager+ can add services');
+            return;
+        }
+        const name = document.getElementById('newServiceName').value.trim();
+        const price = parseFloat(document.getElementById('newServicePrice').value);
+        if (!name || isNaN(price)) { showToast('Enter name and price'); return; }
+        config.serviceTypes.push({ name, price });
+        saveData();
+        refreshServices();
+        renderSelects();
+        showToast('Service added: ' + name);
+        document.getElementById('newServiceName').value = '';
+        document.getElementById('newServicePrice').value = '';
+    }
+
+    function removeService(index) {
+        config.serviceTypes.splice(index, 1);
+        saveData();
+        refreshServices();
+        renderSelects();
+    }
+
+    // ==================== 报表 ====================
+    function exportExcel() {
+        if (allOrders.length === 0) { showToast('No data'); return; }
+        const data = [['Date', 'Time', 'Plate', 'Service', 'Total', 'Payment', 'Staff']];
+        allOrders.forEach(o => data.push([o.date || '', o.time || '', o.plate || '', o.service || '', o.total || 0, o.payment || '', o.staff || '']));
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+        XLSX.writeFile(wb, 'carwash_report.xlsx');
+        showToast('Excel exported');
+    }
+
+    function clearAllOrders() {
+        if (!currentUser || currentUser.role !== 'owner') { showToast('Only owner can clear'); return; }
+        if (confirm('Delete all orders?')) { allOrders = []; saveData(); refreshAll(); showToast('Orders cleared'); }
+    }
+
+    // ==================== 设置 ====================
+    function saveSettings() {
+        if (!currentUser || currentUser.role !== 'owner') { showToast('Only owner'); return; }
+        const name = document.getElementById('shopName').value.trim();
+        const tax = document.getElementById('shopTaxId').value.trim();
+        const vat = parseFloat(document.getElementById('vatRateInput').value);
+        if (name) config.shopName = name;
+        if (tax) config.shopTaxId = tax;
+        if (!isNaN(vat) && vat >= 0) config.vatRate = vat;
+        saveData();
+        showToast('Settings saved');
+        updatePrice();
+    }
+
+    function resetAll() {
+        if (!currentUser || currentUser.role !== 'owner') { showToast('Only owner'); return; }
+        if (confirm('⚠️ DELETE ALL DATA?')) {
+            localStorage.clear();
+            loadData();
+            saveData();
+            refreshAll();
+            showToast('All data reset');
+        }
+    }
+
+    function exportBackup() {
+        const data = { users: allUsers, orders: allOrders, customers: allCustomers, inventory: allInventory, attendance: allAttendance, config: config };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'backup_' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+        showToast('Backup downloaded');
+    }
+
+    function importBackup() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.users) allUsers = data.users;
+                    if (data.orders) allOrders = data.orders;
+                    if (data.customers) allCustomers = data.customers;
+                    if (data.inventory) allInventory = data.inventory;
+                    if (data.attendance) allAttendance = data.attendance;
+                    if (data.config) config = data.config;
+                    saveData();
+                    refreshAll();
+                    showToast('Backup imported');
+                } catch(err) { showToast('Invalid backup file'); }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    // ==================== Charts ====================
+    function initCharts() {
+        const ctx1 = document.getElementById('serviceStatsChart');
+        if (ctx1) {
+            if (serviceChart) serviceChart.destroy();
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const counts = days.map(() => Math.floor(Math.random() * 12) + 2);
+            serviceChart = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: days, datasets: [{ label: 'Orders', data: counts, backgroundColor: '#0091D5', borderRadius: 6 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        const ctx2 = document.getElementById('monthlyRevenueChart');
+        if (ctx2) {
+            if (revenueChart) revenueChart.destroy();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const revenues = months.map(() => Math.floor(Math.random() * 8000) + 2000);
+            revenueChart = new Chart(ctx2, {
+                type: 'line',
+                data: { labels: months, datasets: [{ label: 'Revenue', data: revenues, borderColor: '#0091D5', fill: true, tension: 0.3 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    }
+
+    // ==================== Toast ====================
+    function showToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast-custom';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
+    }
+
+    // ==================== 启动 ====================
+    loadData();
+    
+    // 检查session
+    const session = localStorage.getItem('cw_session');
+    if (session) {
+        try {
+            const s = JSON.parse(session);
+            const user = allUsers.find(u => u.id === s.id);
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('currentUserSpan').textContent = user.name || user.username;
+                document.getElementById('currentRoleSpan').textContent = user.role;
+                refreshAll();
+                switchTab('dashboard');
+                renderSelects();
+                updatePrice();
+            }
+        } catch(e) {}
+    }
+
+    // 设置输入框默认值
+    document.getElementById('shopName').value = config.shopName || '';
+    document.getElementById('shopTaxId').value = config.shopTaxId || '';
+    document.getElementById('vatRateInput').value = config.vatRate || 15;
+
+    console.log('✅ CarWash Pro loaded');
+    console.log('👤 Users:', allUsers.length);
+    console.log('📦 Orders:', allOrders.length);
+    console.log('👥 Customers:', allCustomers.length);
+    console.log('📦 Inventory:', allInventory.length);
+    console.log('🔑 Default: admin/admin123');
+</script>
+</body>
+</html>
