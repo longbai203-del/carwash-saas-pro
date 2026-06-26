@@ -35,6 +35,7 @@
         .role-manager { background: #f59e0b; color: white; }
         .role-cashier { background: #3b82f6; color: white; }
         .role-employee { background: #8b5cf6; color: white; }
+        .role-accountant { background: #06b6d4; color: white; }
         .hidden { display: none !important; }
         .stat-number { font-size: 28px; font-weight: 700; color: #0f172a; }
         .sync-status { font-size: 11px; padding: 2px 10px; border-radius: 20px; }
@@ -43,18 +44,13 @@
         .sync-syncing { background: #fef3c7; color: #d97706; }
         .real-time-badge { background: #22c55e; color: white; font-size: 9px; padding: 2px 8px; border-radius: 20px; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .level-diamond { color: #8b5cf6; font-weight: bold; }
-        .level-gold { color: #f59e0b; font-weight: bold; }
-        .level-silver { color: #9ca3af; font-weight: bold; }
-        .level-bronze { color: #d97706; font-weight: bold; }
-        .level-normal { color: #6b7280; }
-        .commission-badge { font-size: 10px; padding: 2px 10px; border-radius: 20px; }
-        .commission-paid { background: #dcfce7; color: #16a34a; }
-        .commission-pending { background: #fef3c7; color: #d97706; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #0091D5; box-shadow: 0 0 0 3px rgba(0,145,213,0.1); }
+        .status-badge { padding: 2px 10px; border-radius: 20px; font-size: 11px; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-confirmed { background: #dbeafe; color: #3b82f6; }
+        .status-in_progress { background: #ede9fe; color: #7c3aed; }
+        .status-completed { background: #dcfce7; color: #16a34a; }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        .status-refunded { background: #f3f4f6; color: #6b7280; }
         .customer-level { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; }
         .customer-level-diamond { background: #ede9fe; color: #7c3aed; }
         .customer-level-gold { background: #fef3c7; color: #f59e0b; }
@@ -65,24 +61,28 @@
         .tab-btn { padding: 8px 20px; border-radius: 10px; border: none; cursor: pointer; font-size: 13px; transition: all 0.2s; background: transparent; }
         .tab-btn:hover { background: rgba(255,255,255,0.5); }
         .tab-btn.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 600; }
-        .stat-card-mini { background: #f8fafc; padding: 12px; border-radius: 12px; text-align: center; }
-        .stat-card-mini .num { font-size: 22px; font-weight: 700; }
-        .stat-card-mini .lbl { font-size: 11px; color: #6b7280; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #0091D5; box-shadow: 0 0 0 3px rgba(0,145,213,0.1); }
+        .order-timeline { position: relative; padding-left: 20px; }
+        .order-timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
+        .timeline-item { position: relative; padding-bottom: 16px; padding-left: 16px; }
+        .timeline-item::before { content: ''; position: absolute; left: -14px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #0091D5; background: white; }
+        .timeline-item.active::before { background: #0091D5; }
+        .timeline-item.completed::before { background: #22c55e; border-color: #22c55e; }
+        .kpi-card { transition: all 0.3s; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15); }
+        .modal-content { max-height: 85vh; overflow-y: auto; padding: 4px; }
+        .order-card { cursor: pointer; transition: all 0.2s; }
+        .order-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -8px rgba(0,0,0,0.1); }
+        .commission-paid { background: #dcfce7; color: #16a34a; }
+        .commission-pending { background: #fef3c7; color: #d97706; }
         .setting-section { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .setting-section h4 { font-weight: 600; color: #1f2937; margin-bottom: 12px; }
         .setting-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
         .setting-row label { min-width: 100px; font-size: 14px; color: #4b5563; }
         .setting-row input, .setting-row select { flex: 1; min-width: 150px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
-        .setting-row input:focus, .setting-row select:focus { outline: none; border-color: #0091D5; box-shadow: 0 0 0 3px rgba(0,145,213,0.1); }
-        .stock-low { background: #fee2e2; border-right: 4px solid #dc2626; }
-        .stock-normal { background: #f0fdf4; border-right: 4px solid #22c55e; }
-        .kpi-card { transition: all 0.3s; }
-        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15); }
-        .audit-entry { border-left: 3px solid #0091D5; }
-        .audit-INSERT { border-left-color: #22c55e; }
-        .audit-UPDATE { border-left-color: #f59e0b; }
-        .audit-DELETE { border-left-color: #dc2626; }
-        .branch-selector { background: #f8fafc; border-radius: 8px; padding: 4px; }
     </style>
 </head>
 <body>
@@ -139,6 +139,7 @@
         <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1" id="mainNav">
             <a href="#" data-nav="dashboard" class="sidebar-link nav-item-active"><i class="fas fa-chart-line w-5"></i><span>仪表板</span></a>
             <a href="#" data-nav="cashier" class="sidebar-link" id="navCashier"><i class="fas fa-cash-register w-5"></i><span>POS / 收银</span></a>
+            <a href="#" data-nav="orders" class="sidebar-link" id="navOrders"><i class="fas fa-clipboard-list w-5"></i><span>订单管理</span></a>
             <a href="#" data-nav="inventory" class="sidebar-link" id="navInventory"><i class="fas fa-boxes w-5"></i><span>库存</span></a>
             <a href="#" data-nav="members" class="sidebar-link" id="navCustomers"><i class="fas fa-users w-5"></i><span>客户</span></a>
             <a href="#" data-nav="reports" class="sidebar-link" id="navReports"><i class="fas fa-chart-bar w-5"></i><span>财务</span></a>
@@ -181,7 +182,7 @@
                 <!-- KPI看板 -->
                 <div class="glass-card p-4">
                     <h3 class="font-bold text-gray-800 mb-3">📊 实时数据看板</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div class="kpi-card text-center p-3 bg-blue-50 rounded-xl">
                             <div class="text-2xl font-bold text-blue-600" id="kpiTodayOrders">0</div>
                             <div class="text-xs text-gray-500">今日订单</div>
@@ -197,6 +198,10 @@
                         <div class="kpi-card text-center p-3 bg-orange-50 rounded-xl">
                             <div class="text-2xl font-bold text-orange-600" id="kpiLowStock">0</div>
                             <div class="text-xs text-gray-500">低库存预警</div>
+                        </div>
+                        <div class="kpi-card text-center p-3 bg-pink-50 rounded-xl">
+                            <div class="text-2xl font-bold text-pink-600" id="kpiPendingOrders">0</div>
+                            <div class="text-xs text-gray-500">待处理订单</div>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-3 mt-3">
@@ -245,34 +250,91 @@
             <!-- ========== POS ========== -->
             <div id="moduleCashier" class="module-content hidden max-w-6xl mx-auto">
                 <div class="glass-card p-6">
+                    <h3 class="font-bold text-gray-800 mb-4">🧼 快速开单</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="text-sm font-medium">车型</label><select id="vehicleSelect" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"></select></div>
-                        <div><label class="text-sm font-medium">附加服务</label><select id="serviceSelect" class="w-full mt-1 p-3 border rounded-xl"></select></div>
-                        <div><label class="text-sm font-medium">自定义金额 (SAR)</label><input type="number" id="priceInput" class="w-full mt-1 p-3 border-2 border-blue-300 rounded-xl text-xl font-bold" placeholder="0"></div>
+                        <div><label class="text-sm font-medium">客户</label>
+                            <select id="posCustomer" class="w-full mt-1 p-3 border rounded-xl bg-gray-50">
+                                <option value="">散客</option>
+                            </select>
+                        </div>
+                        <div><label class="text-sm font-medium">车辆</label>
+                            <select id="posVehicle" class="w-full mt-1 p-3 border rounded-xl bg-gray-50">
+                                <option value="">选择车辆</option>
+                            </select>
+                        </div>
+                        <div><label class="text-sm font-medium">员工</label>
+                            <select id="posEmployee" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"></select>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <div><label class="text-sm font-medium">支付方式</label><select id="paymentSelect" class="w-full p-3 border rounded-xl"><option>现金</option><option>银行卡</option><option>mada</option><option>Apple Pay</option></select></div>
-                        <div><label class="text-sm font-medium">员工</label><select id="staffSelect" class="w-full p-3 border rounded-xl"></select></div>
-                        <div><label class="text-sm font-medium">车牌号</label><input id="plateInput" class="w-full p-3 border rounded-xl uppercase" placeholder="ABC123"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div><label class="text-sm font-medium">服务项目</label>
+                            <select id="posService" class="w-full mt-1 p-3 border rounded-xl bg-gray-50">
+                                <option value="基础清洗">基础清洗 (30 SAR)</option>
+                                <option value="深度清洗">深度清洗 (55 SAR)</option>
+                                <option value="外部抛光">外部抛光 (65 SAR)</option>
+                                <option value="内部护理">内部护理 (70 SAR)</option>
+                                <option value="全车精洗">全车精洗 (110 SAR)</option>
+                            </select>
+                        </div>
+                        <div><label class="text-sm font-medium">支付方式</label>
+                            <select id="posPayment" class="w-full mt-1 p-3 border rounded-xl bg-gray-50">
+                                <option value="cash">现金</option>
+                                <option value="card">银行卡</option>
+                                <option value="mada">mada</option>
+                                <option value="apple_pay">Apple Pay</option>
+                                <option value="sadad">SADAD</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div><label class="text-sm font-medium">车牌号</label>
+                            <input id="posPlate" class="w-full p-3 border rounded-xl uppercase" placeholder="ABC123">
+                        </div>
+                        <div><label class="text-sm font-medium">金额 (SAR)</label>
+                            <input type="number" id="posAmount" class="w-full p-3 border-2 border-blue-300 rounded-xl text-xl font-bold" placeholder="0" value="30">
+                        </div>
                     </div>
                     <div class="mt-6 bg-blue-50 p-5 rounded-2xl">
-                        <div class="flex justify-between"><span>小计</span><span id="subtotalSpan" class="font-mono">0.00 SAR</span></div>
-                        <div class="flex justify-between"><span>增值税</span><span id="vatSpan">0.00 SAR</span></div>
-                        <div class="flex justify-between text-2xl font-bold text-blue-600 pt-2 border-t"><span>总计</span><span id="totalSpan">0.00 SAR</span></div>
+                        <div class="flex justify-between"><span>服务费</span><span id="posSubtotal" class="font-mono">30.00 SAR</span></div>
+                        <div class="flex justify-between"><span>增值税 (15%)</span><span id="posVat">4.50 SAR</span></div>
+                        <div class="flex justify-between text-2xl font-bold text-blue-600 pt-2 border-t"><span>总计</span><span id="posTotal">34.50 SAR</span></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 mt-6">
-                        <button onclick="saveOrder()" class="btn-primary py-3 rounded-xl font-bold"><i class="fas fa-save"></i> 保存</button>
-                        <button onclick="printReceipt()" class="bg-purple-600 hover:bg-purple-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-print"></i> 打印</button>
-                        <button onclick="voiceTotal()" class="bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-volume-up"></i> 语音</button>
+                    <div class="grid grid-cols-4 gap-4 mt-6">
+                        <button onclick="posSaveOrder()" class="btn-primary py-3 rounded-xl font-bold"><i class="fas fa-save"></i> 保存</button>
+                        <button onclick="posPrintReceipt()" class="bg-purple-600 hover:bg-purple-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-print"></i> 打印</button>
+                        <button onclick="posVoiceTotal()" class="bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl text-white font-bold"><i class="fas fa-volume-up"></i> 语音</button>
+                        <button onclick="posFindCustomer()" class="bg-amber-500 hover:bg-amber-600 py-3 rounded-xl text-white font-bold"><i class="fas fa-search"></i> 查客户</button>
                     </div>
-                    <div id="customerQuickInfo" class="mt-3 p-3 bg-green-50 rounded-xl hidden">
-                        <span class="font-bold">客户: </span><span id="quickCustomerName">-</span>
-                        <span class="mx-2">|</span><span>余额: </span><span id="quickCustomerBalance">0 SAR</span>
-                        <span class="mx-2">|</span><span>积分: </span><span id="quickCustomerPoints">0</span>
-                        <span class="mx-2">|</span><span>等级: </span><span id="quickCustomerLevel">普通</span>
+                    <div id="posCustomerInfo" class="mt-3 p-3 bg-green-50 rounded-xl hidden">
+                        <span class="font-bold">客户: </span><span id="posCustName">-</span>
+                        <span class="mx-2">|</span><span>余额: </span><span id="posCustBalance">0 SAR</span>
+                        <span class="mx-2">|</span><span>积分: </span><span id="posCustPoints">0</span>
+                        <span class="mx-2">|</span><span>等级: </span><span id="posCustLevel">普通</span>
                     </div>
                 </div>
                 <div class="glass-card p-5 mt-5"><h3 class="font-bold">今日订单</h3><div id="todayOrdersList" class="max-h-72 overflow-auto mt-2 space-y-2"></div></div>
+            </div>
+
+            <!-- ========== ORDERS（订单管理 + 状态机） ========== -->
+            <div id="moduleOrders" class="module-content hidden">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold text-blue-600 mb-4">📋 订单管理</h2>
+                    <div class="flex gap-3 mb-4 flex-wrap">
+                        <select id="orderStatusFilter" class="p-2 border rounded-lg text-sm" onchange="loadOrders()">
+                            <option value="all">全部状态</option>
+                            <option value="pending">待确认</option>
+                            <option value="confirmed">已确认</option>
+                            <option value="in_progress">施工中</option>
+                            <option value="completed">已完成</option>
+                            <option value="cancelled">已取消</option>
+                            <option value="refunded">已退款</option>
+                        </select>
+                        <input type="date" id="orderDateFilter" class="p-2 border rounded-lg text-sm" onchange="loadOrders()">
+                        <input type="text" id="orderSearch" placeholder="搜索车牌/客户..." class="p-2 border rounded-lg text-sm flex-1 min-w-[150px]" oninput="loadOrders()">
+                        <button onclick="loadOrders()" class="btn-primary btn-sm">刷新</button>
+                    </div>
+                    <div id="ordersList" class="space-y-3 max-h-[600px] overflow-auto"></div>
+                </div>
             </div>
 
             <!-- ========== INVENTORY ========== -->
@@ -293,18 +355,13 @@
                         <div class="stat-card-mini"><div class="num text-purple-600" id="invTotalValue">0 SAR</div><div class="lbl">总价值</div></div>
                     </div>
                     <div class="flex gap-3 mb-4 flex-wrap">
-                        <select id="invCategoryFilter" class="p-2 border rounded-lg text-sm"><option value="all">全部分类</option><option value="耗材">耗材</option><option value="工具">工具</option><option value="其他">其他</option></select>
-                        <input id="invSearch" placeholder="搜索产品..." class="p-2 border rounded-lg text-sm flex-1 min-w-[150px]">
-                        <button onclick="applyInvFilter()" class="btn-primary btn-sm">筛选</button>
-                        <button onclick="resetInvFilter()" class="btn-outline btn-sm">重置</button>
+                        <input id="invSearch" placeholder="搜索产品..." class="p-2 border rounded-lg text-sm flex-1 min-w-[150px]" oninput="refreshInventory()">
+                        <button onclick="refreshInventory()" class="btn-primary btn-sm">刷新</button>
                     </div>
                     <div id="inventoryList" class="space-y-2 max-h-96 overflow-auto"></div>
                 </div>
                 <div class="glass-card p-6 mt-4">
                     <h3 class="font-bold text-gray-800 mb-3">📋 出入库记录</h3>
-                    <select id="stockLogFilter" class="p-2 border rounded-lg text-sm mb-3" onchange="refreshStockLogs()">
-                        <option value="all">全部</option><option value="in">入库</option><option value="out">出库</option>
-                    </select>
                     <div id="stockLogList" class="space-y-1 max-h-48 overflow-auto text-sm"></div>
                 </div>
             </div>
@@ -313,18 +370,24 @@
             <div id="moduleMembers" class="module-content hidden">
                 <div class="glass-card p-6">
                     <h2 class="text-xl font-bold text-blue-600 mb-4">👥 客户管理</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                         <input id="memberPhone" placeholder="电话" class="p-3 border rounded-xl">
                         <input id="memberName" placeholder="姓名" class="p-3 border rounded-xl">
                         <input id="memberPlate" placeholder="车牌" class="p-3 border rounded-xl">
                         <input id="rechargeAmount" placeholder="充值金额" class="p-3 border rounded-xl" type="number">
-                        <button onclick="addCustomer()" class="btn-success py-3 rounded-xl font-bold">添加 / 充值</button>
+                        <button onclick="addCustomer()" class="btn-success py-3 rounded-xl font-bold col-span-2">添加 / 充值</button>
                     </div>
                     <div class="flex gap-3 mt-3 flex-wrap">
-                        <input id="customerSearch" placeholder="搜索客户..." class="p-2 border rounded-lg text-sm flex-1 min-w-[150px]">
-                        <select id="customerLevelFilter" class="p-2 border rounded-lg text-sm"><option value="all">全部等级</option><option value="钻石">钻石</option><option value="黄金">黄金</option><option value="白银">白银</option><option value="青铜">青铜</option><option value="普通">普通</option></select>
-                        <button onclick="applyCustomerFilter()" class="btn-primary btn-sm">筛选</button>
-                        <button onclick="resetCustomerFilter()" class="btn-outline btn-sm">重置</button>
+                        <input id="customerSearch" placeholder="搜索客户..." class="p-2 border rounded-lg text-sm flex-1 min-w-[150px]" oninput="refreshCustomers()">
+                        <select id="customerLevelFilter" class="p-2 border rounded-lg text-sm" onchange="refreshCustomers()">
+                            <option value="all">全部等级</option>
+                            <option value="钻石">钻石</option>
+                            <option value="黄金">黄金</option>
+                            <option value="白银">白银</option>
+                            <option value="青铜">青铜</option>
+                            <option value="普通">普通</option>
+                        </select>
+                        <button onclick="refreshCustomers()" class="btn-primary btn-sm">刷新</button>
                     </div>
                     <div id="membersList" class="mt-5 space-y-2 max-h-96 overflow-auto"></div>
                 </div>
@@ -336,10 +399,9 @@
                     <h2 class="text-xl font-bold text-blue-600 mb-4">📊 财务管理</h2>
                     <div class="tab-bar">
                         <button class="tab-btn active" data-tab="daily" onclick="switchReportTab('daily')">📅 日报</button>
-                        <button class="tab-btn" data-tab="commission" onclick="switchReportTab('commission')">💰 员工提成</button>
+                        <button class="tab-btn" data-tab="commission" onclick="switchReportTab('commission')">💰 提成</button>
                         <button class="tab-btn" data-tab="customers" onclick="switchReportTab('customers')">🏆 客户排行</button>
                     </div>
-                    <!-- 日报 -->
                     <div id="reportTabDaily" class="report-section">
                         <div class="grid grid-cols-4 gap-3 mb-4">
                             <div class="stat-card-mini"><div class="num text-blue-600" id="dailyOrders">0</div><div class="lbl">今日订单</div></div>
@@ -347,33 +409,26 @@
                             <div class="stat-card-mini"><div class="num text-purple-600" id="dailyVat">0 SAR</div><div class="lbl">增值税</div></div>
                             <div class="stat-card-mini"><div class="num text-orange-600" id="dailyProfit">0 SAR</div><div class="lbl">净利润</div></div>
                         </div>
-                        <div class="grid grid-cols-4 gap-3 mb-4">
-                            <div class="stat-card-mini"><div class="num text-sm">💰 现金: <span id="dailyCash" class="font-bold">0</span></div></div>
-                            <div class="stat-card-mini"><div class="num text-sm">💳 银行卡: <span id="dailyCard" class="font-bold">0</span></div></div>
-                            <div class="stat-card-mini"><div class="num text-sm">🏦 mada: <span id="dailyMada" class="font-bold">0</span></div></div>
-                            <div class="stat-card-mini"><div class="num text-sm">📱 Apple Pay: <span id="dailyApple" class="font-bold">0</span></div></div>
-                        </div>
                         <div class="flex gap-2 flex-wrap">
                             <input type="date" id="reportDatePicker" onchange="loadDailyReport()">
                             <button onclick="loadDailyReport()" class="btn-primary btn-sm">查看</button>
                             <button onclick="exportDailyReport()" class="bg-green-600 text-white btn-sm">📊 导出日报</button>
                         </div>
                     </div>
-                    <!-- 提成 -->
                     <div id="reportTabCommission" class="report-section hidden">
                         <div class="flex gap-3 mb-3 flex-wrap">
                             <select id="commissionStaffFilter" class="p-2 border rounded-lg text-sm"></select>
-                            <select id="commissionStatusFilter" class="p-2 border rounded-lg text-sm"><option value="all">全部状态</option><option value="待结算">待结算</option><option value="已结算">已结算</option></select>
-                            <input type="date" id="commissionDateStart" class="p-2 border rounded-lg text-sm">
-                            <span class="text-sm self-center">至</span>
-                            <input type="date" id="commissionDateEnd" class="p-2 border rounded-lg text-sm">
+                            <select id="commissionStatusFilter" class="p-2 border rounded-lg text-sm" onchange="loadCommission()">
+                                <option value="all">全部状态</option>
+                                <option value="pending">待结算</option>
+                                <option value="paid">已结算</option>
+                            </select>
                             <button onclick="loadCommission()" class="btn-primary btn-sm">查询</button>
                             <button onclick="settleCommission()" class="btn-success btn-sm">✅ 结算</button>
                         </div>
                         <div id="commissionList" class="space-y-2 max-h-64 overflow-auto"></div>
                         <div class="mt-3 text-sm text-gray-500">总计提成: <span id="commissionTotal" class="font-bold text-green-600">0 SAR</span></div>
                     </div>
-                    <!-- 客户排行 -->
                     <div id="reportTabCustomers" class="report-section hidden">
                         <div class="flex gap-3 mb-3 flex-wrap">
                             <select id="customerRankFilter" class="p-2 border rounded-lg text-sm"><option value="points">积分排行</option><option value="spent">消费排行</option><option value="visits">到店次数</option></select>
@@ -422,11 +477,7 @@
                             <option value="customers">客户</option>
                             <option value="inventory">库存</option>
                             <option value="users">用户</option>
-                            <option value="attendance">考勤</option>
                         </select>
-                        <input type="date" id="auditDateStart" class="p-2 border rounded-lg text-sm">
-                        <span class="text-sm self-center">至</span>
-                        <input type="date" id="auditDateEnd" class="p-2 border rounded-lg text-sm">
                         <button onclick="loadAuditLog()" class="btn-primary btn-sm">查询</button>
                         <button onclick="exportAuditLog()" class="bg-green-600 text-white btn-sm">📊 导出</button>
                     </div>
@@ -439,70 +490,32 @@
             <div id="moduleSettings" class="module-content hidden">
                 <div class="glass-card p-6">
                     <h2 class="text-xl font-bold text-blue-600 mb-4">⚙️ 系统设置</h2>
-
-                    <!-- 店铺信息 -->
                     <div class="setting-section">
                         <h4>🏪 店铺信息</h4>
                         <div class="setting-row"><label>店铺名称</label><input id="shopName" class="p-2 border rounded"></div>
                         <div class="setting-row"><label>税号</label><input id="shopTaxId" class="p-2 border rounded"></div>
                     </div>
-
-                    <!-- 税务 & 提成 -->
                     <div class="setting-section">
                         <h4>💰 税务 & 提成</h4>
                         <div class="setting-row"><label>增值税率 (%)</label><input id="vatRateInput" class="p-2 border rounded" type="number" step="0.5"></div>
                         <div class="setting-row"><label>提成比例 (%)</label><input id="commissionRate" class="p-2 border rounded" type="number" step="0.5"></div>
                     </div>
-
-                    <!-- 自动备份 -->
-                    <div class="setting-section">
-                        <h4>💾 自动备份</h4>
-                        <div class="setting-row">
-                            <label>启用自动备份</label>
-                            <select id="backupEnabled" class="p-2 border rounded-lg">
-                                <option value="true">启用</option>
-                                <option value="false">禁用</option>
-                            </select>
-                        </div>
-                        <div class="setting-row">
-                            <label>备份频率</label>
-                            <select id="backupFrequency" class="p-2 border rounded-lg">
-                                <option value="daily">每日</option>
-                                <option value="weekly">每周</option>
-                                <option value="monthly">每月</option>
-                            </select>
-                        </div>
-                        <div class="setting-row">
-                            <label>保留天数</label>
-                            <input id="backupRetention" type="number" value="30" class="p-2 border rounded-lg" style="width:100px;">
-                        </div>
-                        <div class="setting-row">
-                            <label>上次备份</label>
-                            <span id="lastBackupTime" class="text-sm text-gray-400">从未备份</span>
-                        </div>
-                        <div class="flex gap-2 mt-2 flex-wrap">
-                            <button onclick="saveBackupConfig()" class="btn-primary btn-sm">保存备份设置</button>
-                            <button onclick="manualBackup()" class="btn-success btn-sm">🔄 立即备份</button>
-                            <button onclick="restoreBackup()" class="btn-warning btn-sm">📂 恢复备份</button>
-                        </div>
-                    </div>
-
-                    <!-- 门店管理 -->
-                    <div class="setting-section">
-                        <h4>🏪 门店管理</h4>
-                        <div class="flex gap-2 mb-2 flex-wrap">
-                            <input id="newBranchName" placeholder="门店名称" class="p-2 border rounded flex-1">
-                            <input id="newBranchAddress" placeholder="地址" class="p-2 border rounded flex-1">
-                            <button onclick="addBranch()" class="btn-primary btn-sm">添加门店</button>
-                        </div>
-                        <div id="branchList" class="space-y-1 max-h-48 overflow-auto"></div>
-                    </div>
-
                     <button onclick="saveSettings()" class="btn-primary py-2 rounded-lg w-full mt-4">保存所有设置</button>
                 </div>
             </div>
 
         </main>
+    </div>
+</div>
+
+<!-- ==================== 模态框：订单详情 ==================== -->
+<div id="orderDetailModal" class="modal-glass hidden">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-blue-600" id="orderDetailTitle">订单详情</h3>
+            <button onclick="closeModal('orderDetailModal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div id="orderDetailContent"></div>
     </div>
 </div>
 
@@ -512,9 +525,8 @@
         <h3 class="text-xl font-bold text-blue-600 mb-4">📥 入库</h3>
         <div class="form-group"><label>产品</label><select id="stockInProduct" class="w-full p-2 border rounded"></select></div>
         <div class="form-group"><label>数量</label><input id="stockInQty" type="number" min="1" class="w-full p-2 border rounded"></div>
-        <div class="form-group"><label>单价 (SAR)</label><input id="stockInPrice" type="number" step="0.01" class="w-full p-2 border rounded" placeholder="0.00"></div>
-        <div class="form-group"><label>供应商</label><input id="stockInSupplier" class="w-full p-2 border rounded" placeholder="供应商名称"></div>
-        <div class="form-group"><label>备注</label><input id="stockInNote" class="w-full p-2 border rounded" placeholder="备注"></div>
+        <div class="form-group"><label>单价 (SAR)</label><input id="stockInPrice" type="number" step="0.01" class="w-full p-2 border rounded"></div>
+        <div class="form-group"><label>供应商</label><input id="stockInSupplier" class="w-full p-2 border rounded"></div>
         <div class="flex gap-3 mt-4"><button onclick="submitStockIn()" class="btn-success flex-1 py-2 rounded-lg">确认入库</button><button onclick="closeModal('stockInModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div>
     </div>
 </div>
@@ -526,7 +538,6 @@
         <div class="form-group"><label>产品</label><select id="stockOutProduct" class="w-full p-2 border rounded"></select></div>
         <div class="form-group"><label>数量</label><input id="stockOutQty" type="number" min="1" class="w-full p-2 border rounded"></div>
         <div class="form-group"><label>出库原因</label><select id="stockOutReason" class="w-full p-2 border rounded"><option value="日常消耗">日常消耗</option><option value="客户使用">客户使用</option><option value="过期报废">过期报废</option><option value="其他">其他</option></select></div>
-        <div class="form-group"><label>备注</label><input id="stockOutNote" class="w-full p-2 border rounded" placeholder="备注"></div>
         <div class="flex gap-3 mt-4"><button onclick="submitStockOut()" class="btn-warning flex-1 py-2 rounded-lg">确认出库</button><button onclick="closeModal('stockOutModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div>
     </div>
 </div>
@@ -537,10 +548,10 @@
         <h3 class="text-xl font-bold text-blue-600 mb-4">➕ 新产品</h3>
         <div class="form-group"><label>产品名称</label><input id="newProductName" class="w-full p-2 border rounded"></div>
         <div class="form-group"><label>分类</label><select id="newProductCategory" class="w-full p-2 border rounded"><option value="耗材">耗材</option><option value="工具">工具</option><option value="其他">其他</option></select></div>
-        <div class="form-group"><label>单位</label><input id="newProductUnit" class="w-full p-2 border rounded" placeholder="如：瓶、条、个" value="瓶"></div>
-        <div class="form-group"><label>初始数量</label><input id="newProductQty" type="number" min="0" class="w-full p-2 border rounded" placeholder="0"></div>
-        <div class="form-group"><label>成本价 (SAR)</label><input id="newProductCost" type="number" step="0.01" class="w-full p-2 border rounded" placeholder="0.00"></div>
-        <div class="form-group"><label>最低库存预警</label><input id="newProductMinQty" type="number" min="1" class="w-full p-2 border rounded" placeholder="5"></div>
+        <div class="form-group"><label>单位</label><input id="newProductUnit" class="w-full p-2 border rounded" value="瓶"></div>
+        <div class="form-group"><label>初始数量</label><input id="newProductQty" type="number" min="0" class="w-full p-2 border rounded"></div>
+        <div class="form-group"><label>成本价 (SAR)</label><input id="newProductCost" type="number" step="0.01" class="w-full p-2 border rounded"></div>
+        <div class="form-group"><label>最低库存预警</label><input id="newProductMinQty" type="number" min="1" class="w-full p-2 border rounded" value="5"></div>
         <div class="flex gap-3 mt-4"><button onclick="submitNewProduct()" class="btn-success flex-1 py-2 rounded-lg">添加产品</button><button onclick="closeModal('addProductModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div>
     </div>
 </div>
@@ -569,38 +580,54 @@ let allDailyReports = [];
 let allCommissions = [];
 let allAuditLogs = [];
 let allBranches = [];
+let allProducts = [];
+let allVehicles = [];
 let currentBranch = 'all';
 let config = {
     vatRate: 15,
     shopName: 'Car Wash Pro',
     shopTaxId: '310245678900003',
-    commissionRate: 5,
-    vehicleTypes: [
-        { name: '小型车', price: 30 },
-        { name: '中型车', price: 45 },
-        { name: '大型车', price: 60 },
-        { name: 'SUV', price: 75 }
-    ],
-    serviceTypes: [
-        { name: '基础清洗', price: 0 },
-        { name: '深度清洗', price: 25 },
-        { name: '外部抛光', price: 35 },
-        { name: '内部护理', price: 40 },
-        { name: '全车精洗', price: 80 }
-    ]
+    commissionRate: 5
 };
 let serviceChart = null;
 let revenueChart = null;
 let realtimeSubscription = null;
-let invFilter = { category: 'all', search: '' };
 let customerFilter = { search: '', level: 'all' };
-let currentReportTab = 'daily';
+
+// 订单状态
+const ORDER_STATUS = {
+    PENDING: 'pending',
+    CONFIRMED: 'confirmed',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled',
+    REFUNDED: 'refunded'
+};
+
+const ORDER_STATUS_LABELS = {
+    pending: '待确认',
+    confirmed: '已确认',
+    in_progress: '施工中',
+    completed: '已完成',
+    cancelled: '已取消',
+    refunded: '已退款'
+};
+
+const ORDER_STATUS_CLASSES = {
+    pending: 'status-pending',
+    confirmed: 'status-confirmed',
+    in_progress: 'status-in_progress',
+    completed: 'status-completed',
+    cancelled: 'status-cancelled',
+    refunded: 'status-refunded'
+};
 
 const ROLE_PERMISSIONS = {
-    owner: { label: '老板', icon: '👑', level: 100, cashier: true, inventory: true, customers: true, attendance: true, reports: true, employees: true, audit: true, settings: true },
-    manager: { label: '店长', icon: '📋', level: 80, cashier: true, inventory: true, customers: true, attendance: true, reports: true, employees: false, audit: false, settings: false },
-    cashier: { label: '收银员', icon: '💰', level: 50, cashier: true, inventory: false, customers: true, attendance: false, reports: false, employees: false, audit: false, settings: false },
-    employee: { label: '员工', icon: '👤', level: 30, cashier: false, inventory: false, customers: false, attendance: true, reports: false, employees: false, audit: false, settings: false }
+    owner: { label: '老板', icon: '👑', level: 100, cashier: true, orders: true, inventory: true, customers: true, attendance: true, reports: true, employees: true, audit: true, settings: true },
+    manager: { label: '店长', icon: '📋', level: 80, cashier: true, orders: true, inventory: true, customers: true, attendance: true, reports: true, employees: false, audit: false, settings: false },
+    cashier: { label: '收银员', icon: '💰', level: 50, cashier: true, orders: false, inventory: false, customers: true, attendance: false, reports: false, employees: false, audit: false, settings: false },
+    employee: { label: '员工', icon: '👤', level: 30, cashier: false, orders: false, inventory: false, customers: false, attendance: true, reports: false, employees: false, audit: false, settings: false },
+    accountant: { label: '会计', icon: '📊', level: 70, cashier: false, orders: false, inventory: false, customers: false, attendance: false, reports: true, employees: false, audit: true, settings: false }
 };
 
 // ================================================================
@@ -609,18 +636,20 @@ const ROLE_PERMISSIONS = {
 async function loadData() {
     try {
         updateSyncStatus('syncing');
-        const [usersRes, ordersRes, customersRes, inventoryRes, attendanceRes, stockInRes, stockOutRes, dailyRes, commissionRes, auditRes, branchesRes] = await Promise.all([
+        const [usersRes, ordersRes, customersRes, inventoryRes, attendanceRes, stockInRes, stockOutRes, dailyRes, commissionRes, auditRes, branchesRes, productsRes, vehiclesRes] = await Promise.all([
             supabaseClient.from('users').select('*').order('created_at', { ascending: true }),
-            supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(200),
             supabaseClient.from('customers').select('*').order('created_at', { ascending: false }),
             supabaseClient.from('inventory').select('*'),
-            supabaseClient.from('attendance').select('*').order('time', { ascending: false }),
+            supabaseClient.from('attendance').select('*').order('time', { ascending: false }).limit(100),
             supabaseClient.from('stock_in').select('*').order('created_at', { ascending: false }).limit(50),
             supabaseClient.from('stock_out').select('*').order('created_at', { ascending: false }).limit(50),
-            supabaseClient.from('daily_report').select('*').order('report_date', { ascending: false }).limit(30),
-            supabaseClient.from('employee_commission').select('*').order('created_at', { ascending: false }).limit(100),
-            supabaseClient.from('audit_log').select('*').order('created_at', { ascending: false }).limit(50),
-            supabaseClient.from('branches').select('*')
+            supabaseClient.from('daily_reports').select('*').order('report_date', { ascending: false }).limit(30),
+            supabaseClient.from('commissions').select('*').order('created_at', { ascending: false }).limit(100),
+            supabaseClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
+            supabaseClient.from('stores').select('*'),
+            supabaseClient.from('products').select('*'),
+            supabaseClient.from('vehicles').select('*')
         ]);
 
         if (usersRes.error) throw new Error(usersRes.error.message);
@@ -634,6 +663,8 @@ async function loadData() {
         if (commissionRes.error) throw new Error(commissionRes.error.message);
         if (auditRes.error) throw new Error(auditRes.error.message);
         if (branchesRes.error) throw new Error(branchesRes.error.message);
+        if (productsRes.error) throw new Error(productsRes.error.message);
+        if (vehiclesRes.error) throw new Error(vehiclesRes.error.message);
 
         allUsers = usersRes.data || [];
         allOrders = ordersRes.data || [];
@@ -646,6 +677,8 @@ async function loadData() {
         allCommissions = commissionRes.data || [];
         allAuditLogs = auditRes.data || [];
         allBranches = branchesRes.data || [];
+        allProducts = productsRes.data || [];
+        allVehicles = vehiclesRes.data || [];
 
         try {
             const savedConfig = JSON.parse(localStorage.getItem('cw_config'));
@@ -691,19 +724,12 @@ function setupRealtime() {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
             allOrders.unshift(payload.new);
             refreshAll();
-            showToast('🔔 新订单: ' + (payload.new.plate_number || '未知') + ' ' + payload.new.total + ' SAR');
+            showToast('🔔 新订单: #' + (payload.new.order_number || '') + ' ' + payload.new.total + ' SAR');
         })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventory' }, (payload) => { allInventory.push(payload.new); refreshAll(); })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'inventory' }, (payload) => {
-            const idx = allInventory.findIndex(i => i.id === payload.new.id);
-            if (idx !== -1) allInventory[idx] = payload.new;
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+            const idx = allOrders.findIndex(o => o.id === payload.new.id);
+            if (idx !== -1) allOrders[idx] = payload.new;
             refreshAll();
-        })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stock_in' }, (payload) => { allStockIn.unshift(payload.new); refreshAll(); })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stock_out' }, (payload) => { allStockOut.unshift(payload.new); refreshAll(); })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_log' }, (payload) => {
-            if (allAuditLogs.length > 100) allAuditLogs.pop();
-            allAuditLogs.unshift(payload.new);
         })
         .subscribe((status) => { if (status === 'SUBSCRIBED') console.log('✅ Realtime connected'); });
 }
@@ -750,6 +776,7 @@ function logout() {
 function updateUIByRole(role) {
     const permissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.employee;
     document.getElementById('navCashier').style.display = permissions.cashier ? 'flex' : 'none';
+    document.getElementById('navOrders').style.display = permissions.orders ? 'flex' : 'none';
     document.getElementById('navInventory').style.display = permissions.inventory ? 'flex' : 'none';
     document.getElementById('navCustomers').style.display = permissions.customers ? 'flex' : 'none';
     document.getElementById('navAttendance').style.display = permissions.attendance ? 'flex' : 'none';
@@ -774,17 +801,18 @@ function switchTab(tab) {
         el.classList.remove('nav-item-active');
         if (el.dataset.nav === tab) el.classList.add('nav-item-active');
     });
-    const titles = { dashboard: '仪表板', cashier: '收银台', inventory: '库存管理', members: '客户管理', attendance: '考勤管理', reports: '财务管理', employees: '员工管理', audit: '审计日志', settings: '系统设置' };
+    const titles = { dashboard: '仪表板', cashier: '收银台', orders: '订单管理', inventory: '库存管理', members: '客户管理', attendance: '考勤管理', reports: '财务管理', employees: '员工管理', audit: '审计日志', settings: '系统设置' };
     document.getElementById('currentPageTitle').textContent = titles[tab] || tab;
     if (tab === 'dashboard') refreshDashboard();
-    if (tab === 'cashier') { renderSelects(); updatePrice(); refreshOrders(); }
+    if (tab === 'cashier') refreshPOS();
+    if (tab === 'orders') loadOrders();
     if (tab === 'inventory') refreshInventory();
-    if (tab === 'members') { refreshCustomers(); loadCustomerRank(); }
+    if (tab === 'members') refreshCustomers();
     if (tab === 'attendance') refreshAttendance();
     if (tab === 'employees') refreshEmployees();
     if (tab === 'reports') { loadDailyReport(); loadCommission(); loadCustomerRank(); }
     if (tab === 'audit') loadAuditLog();
-    if (tab === 'settings') { loadSettings(); loadBackupConfig(); refreshBranches(); }
+    if (tab === 'settings') loadSettings();
 }
 
 document.querySelectorAll('[data-nav]').forEach(el => {
@@ -792,34 +820,23 @@ document.querySelectorAll('[data-nav]').forEach(el => {
 });
 
 // ================================================================
-//  数据过滤（含门店）
+//  数据过滤
 // ================================================================
 function getFilteredOrders() {
     let orders = allOrders;
-    const role = currentUser?.role || 'employee';
-
-    // 门店过滤
     if (currentBranch !== 'all') {
-        orders = orders.filter(o => o.branch_id === currentBranch);
+        orders = orders.filter(o => o.store_id === currentBranch);
     }
-
-    // 角色过滤
+    const role = currentUser?.role || 'employee';
     if (role !== 'owner' && role !== 'manager') {
         const username = currentUser?.name || currentUser?.username || '';
-        orders = orders.filter(o => o.staff_name === username || o.staff_name === currentUser?.name);
+        orders = orders.filter(o => o.staff_name === username);
     }
     return orders;
 }
 
-function getFilteredAttendance() {
-    const role = currentUser?.role || 'employee';
-    if (role === 'owner' || role === 'manager') return allAttendance;
-    const username = currentUser?.name || currentUser?.username || '';
-    return allAttendance.filter(a => a.staff_name === username || a.staff_name === currentUser?.name);
-}
-
 // ================================================================
-//  P3: 多门店功能
+//  多门店
 // ================================================================
 function updateBranchSelector() {
     const sel = document.getElementById('branchSelector');
@@ -838,40 +855,8 @@ function switchBranch() {
     showToast('已切换到: ' + branchName);
 }
 
-async function addBranch() {
-    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以添加门店'); return; }
-    const name = document.getElementById('newBranchName').value.trim();
-    const address = document.getElementById('newBranchAddress').value.trim();
-    if (!name) { showToast('请输入门店名称'); return; }
-    try {
-        const { data, error } = await supabaseClient.from('branches').insert([{ name, address }]).select();
-        if (error) throw new Error(error.message);
-        if (data && data.length > 0) {
-            allBranches.push(data[0]);
-            refreshBranches();
-            updateBranchSelector();
-            showToast('✅ 门店已添加: ' + name);
-            document.getElementById('newBranchName').value = '';
-            document.getElementById('newBranchAddress').value = '';
-        }
-    } catch (error) {
-        showToast('❌ 添加失败: ' + error.message);
-    }
-}
-
-function refreshBranches() {
-    const list = document.getElementById('branchList');
-    if (!list) return;
-    list.innerHTML = allBranches.map(b =>
-        `<div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-            <span><strong>${b.name}</strong> <span class="text-sm text-gray-400">${b.address || ''}</span></span>
-            <span class="text-xs text-gray-400">${b.status || 'active'}</span>
-        </div>`
-    ).join('') || '<div class="text-center text-gray-400">暂无门店</div>';
-}
-
 // ================================================================
-//  P3: KPI看板
+//  KPI看板
 // ================================================================
 function refreshKPIs() {
     const orders = getFilteredOrders();
@@ -881,8 +866,8 @@ function refreshKPIs() {
     const todayRevenue = todayOrders.reduce((s, o) => s + (o.total || 0), 0);
     const lowStock = allInventory.filter(i => (i.quantity || 0) <= (i.min_qty || 5)).length;
     const avgOrder = orders.length > 0 ? totalRevenue / orders.length : 0;
+    const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed' || o.status === 'in_progress').length;
 
-    // 最佳员工
     const staffStats = {};
     orders.forEach(o => {
         const name = o.staff_name || '未知';
@@ -890,7 +875,6 @@ function refreshKPIs() {
     });
     const topStaff = Object.entries(staffStats).sort((a, b) => b[1] - a[1])[0];
 
-    // 热门服务
     const serviceStats = {};
     orders.forEach(o => {
         const name = o.service_name || '基础';
@@ -902,6 +886,7 @@ function refreshKPIs() {
     document.getElementById('kpiTodayRevenue').textContent = todayRevenue.toFixed(2) + ' SAR';
     document.getElementById('kpiTotalRevenue').textContent = totalRevenue.toFixed(2) + ' SAR';
     document.getElementById('kpiLowStock').textContent = lowStock;
+    document.getElementById('kpiPendingOrders').textContent = pendingOrders;
     document.getElementById('kpiAvgOrder').textContent = avgOrder.toFixed(2) + ' SAR';
     document.getElementById('kpiTopStaff').textContent = topStaff ? topStaff[0] + ' (' + topStaff[1].toFixed(0) + ' SAR)' : '-';
     document.getElementById('kpiTopService').textContent = topService ? topService[0] + ' (' + topService[1] + '单)' : '-';
@@ -923,7 +908,6 @@ function refreshDashboard() {
     document.getElementById('totalSalesValue').textContent = total.toFixed(2) + ' SAR';
     document.getElementById('employeesCount').textContent = allUsers.filter(u => u.role !== 'owner').length;
 
-    // 库存预警
     const lowItems = allInventory.filter(i => (i.quantity || 0) <= (i.min_qty || 5));
     const alertBar = document.getElementById('stockAlertBar');
     if (lowItems.length > 0) {
@@ -935,7 +919,11 @@ function refreshDashboard() {
 
     const preview = document.getElementById('todayOrdersPreview');
     preview.innerHTML = todayOrders.slice(0, 10).map(o =>
-        `<div class="flex justify-between p-2 bg-gray-50 rounded-lg"><span>${o.plate_number || 'N/A'}</span><span>${o.total || 0} SAR</span></div>`
+        `<div class="flex justify-between p-2 bg-gray-50 rounded-lg">
+            <span>${o.plate_number || 'N/A'}</span>
+            <span class="status-badge ${ORDER_STATUS_CLASSES[o.status] || 'status-pending'}">${ORDER_STATUS_LABELS[o.status] || o.status}</span>
+            <span>${o.total || 0} SAR</span>
+        </div>`
     ).join('') || '<div class="text-gray-400 text-center">今日暂无订单</div>';
 
     const counts = {};
@@ -949,234 +937,404 @@ function refreshDashboard() {
     initCharts();
 }
 
-function refreshOrders() {
-    const orders = getFilteredOrders();
-    const today = new Date().toISOString().split('T')[0];
-    const todayOrders = orders.filter(o => (o.date || '').startsWith(today));
-    const list = document.getElementById('todayOrdersList');
-    list.innerHTML = todayOrders.slice(0, 20).map(o =>
-        `<div class="flex justify-between p-2 border-b"><span>${o.created_at ? new Date(o.created_at).toLocaleTimeString() : ''}</span><span>${o.plate_number || 'N/A'}</span><span>${o.total || 0} SAR</span></div>`
-    ).join('') || '<div class="text-center text-gray-400">今日暂无订单</div>';
-}
-
-function refreshCustomers() {
-    let customers = allCustomers;
-    if (customerFilter.search) {
-        customers = customers.filter(c => c.name.includes(customerFilter.search) || c.phone.includes(customerFilter.search) || c.plate_number.includes(customerFilter.search));
+function refreshPOS() {
+    // 更新客户下拉
+    const custSel = document.getElementById('posCustomer');
+    if (custSel) {
+        const currentVal = custSel.value;
+        custSel.innerHTML = '<option value="">散客</option>' +
+            allCustomers.map(c => `<option value="${c.id}">${c.name} (${c.plate_number || ''})</option>`).join('');
+        if (currentVal) custSel.value = currentVal;
     }
-    if (customerFilter.level !== 'all') {
-        customers = customers.filter(c => c.level === customerFilter.level);
-    }
-    const list = document.getElementById('membersList');
-    list.innerHTML = customers.map(c => {
-        const levelClass = 'customer-level customer-level-' + (c.level || 'normal').toLowerCase();
-        return `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-            <div><strong>${c.name || 'Unknown'}</strong><span class="${levelClass}">${c.level || '普通'}</span><br><small>${c.phone || ''} | ${c.plate_number || ''}</small></div>
-            <div class="text-right"><div>余额: <span class="font-bold text-green-600">${(c.balance || 0).toFixed(2)} SAR</span></div><div class="text-sm">积分: ${c.points || 0} | 到店: ${c.visit_count || 0}次</div></div>
-        </div>`;
-    }).join('') || '<div class="text-center text-gray-400">暂无客户</div>';
-}
-
-function refreshInventory() {
-    document.getElementById('invTotalItems').textContent = allInventory.length;
-    document.getElementById('invTotalQty').textContent = allInventory.reduce((s, i) => s + (i.quantity || 0), 0);
-    document.getElementById('invLowItems').textContent = allInventory.filter(i => (i.quantity || 0) <= (i.min_qty || 5)).length;
-    document.getElementById('invTotalValue').textContent = allInventory.reduce((s, i) => s + ((i.quantity || 0) * (i.cost || 0)), 0).toFixed(2) + ' SAR';
-
-    let items = allInventory;
-    if (invFilter.category !== 'all') items = items.filter(i => i.category === invFilter.category);
-    if (invFilter.search) items = items.filter(i => i.name.includes(invFilter.search));
-
-    const list = document.getElementById('inventoryList');
-    list.innerHTML = items.map(i => {
-        const isLow = (i.quantity || 0) <= (i.min_qty || 5);
-        return `<div class="${isLow ? 'stock-low' : 'stock-normal'} flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border">
-            <div><span class="font-medium">${i.name}</span><span class="text-xs text-gray-400 ml-2">${i.category || '其他'} · ${i.unit || '个'}</span>${isLow ? '<span class="text-xs text-red-500 ml-2">⚠️ 低库存</span>' : ''}</div>
-            <div class="flex items-center gap-4"><span class="font-bold ${isLow ? 'text-red-600' : 'text-green-600'}">${i.quantity || 0}</span><span class="text-sm text-gray-400">${(i.cost || 0).toFixed(2)} SAR</span><span class="text-xs text-gray-400">预警: ${i.min_qty || 5}</span></div>
-        </div>`;
-    }).join('') || '<div class="text-center text-gray-400">暂无库存</div>';
-    refreshStockLogs();
-}
-
-function refreshStockLogs() {
-    let logs = [];
-    allStockIn.forEach(s => logs.push({ type: 'in', ...s }));
-    allStockOut.forEach(s => logs.push({ type: 'out', ...s }));
-    logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    const filter = document.getElementById('stockLogFilter')?.value || 'all';
-    if (filter === 'in') logs = logs.filter(l => l.type === 'in');
-    if (filter === 'out') logs = logs.filter(l => l.type === 'out');
-    const list = document.getElementById('stockLogList');
-    list.innerHTML = logs.slice(0, 30).map(l => {
-        const icon = l.type === 'in' ? '📥' : '📤';
-        const color = l.type === 'in' ? 'text-green-600' : 'text-amber-600';
-        const product = allInventory.find(i => i.id === l.inventory_id);
-        return `<div class="flex justify-between p-2 border-b"><span>${icon} <span class="${color}">${l.type === 'in' ? '入库' : '出库'}</span></span><span>${product?.name || '未知'} × ${l.quantity}</span><span class="text-gray-400 text-xs">${l.created_at ? new Date(l.created_at).toLocaleString() : ''}</span></div>`;
-    }).join('') || '<div class="text-center text-gray-400">暂无记录</div>';
-}
-
-function refreshAttendance() {
-    const records = getFilteredAttendance();
-    const list = document.getElementById('attendanceList');
-    list.innerHTML = records.slice(0, 20).map(a =>
-        `<div class="text-sm p-2 bg-gray-50 rounded">${a.staff_name} · ${a.type} · ${a.time ? new Date(a.time).toLocaleString() : ''}</div>`
-    ).join('') || '<div class="text-center text-gray-400">暂无记录</div>';
-}
-
-function refreshEmployees() {
-    const list = document.getElementById('employeesList');
-    list.innerHTML = allUsers.map(u =>
-        `<div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span><strong>${u.name || u.username}</strong> <span class="role-badge role-${u.role}">${ROLE_PERMISSIONS[u.role]?.label || u.role}</span></span><span>${u.username}</span></div>`
-    ).join('');
-}
-
-function refreshAll() {
-    refreshDashboard();
-    refreshOrders();
-    refreshCustomers();
-    refreshInventory();
-    refreshAttendance();
-    refreshEmployees();
-    renderSelects();
-    updateStaffSelects();
-    updateInventorySelects();
-    updateCommissionStaffSelect();
-}
-
-// ================================================================
-//  POS功能
-// ================================================================
-function renderSelects() {
-    const vSel = document.getElementById('vehicleSelect');
-    vSel.innerHTML = (config.vehicleTypes || []).map(v =>
-        `<option value="${v.price}">${v.name} (${v.price} SAR)</option>`
-    ).join('');
-    const sSel = document.getElementById('serviceSelect');
-    sSel.innerHTML = '<option value="0">无</option>' + (config.serviceTypes || []).map(s =>
-        `<option value="${s.price}">${s.name} (+${s.price} SAR)</option>`
-    ).join('');
-    updatePrice();
-}
-
-function updateStaffSelects() {
-    const staff = allUsers.filter(u => u.role !== 'owner').map(u => u.name || u.username);
-    ['staffSelect', 'attendanceStaff'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = staff.map(s => `<option value="${s}">${s}</option>`).join('') || '<option value="">暂无员工</option>';
-            if (currentUser?.name) {
-                for (let opt of sel.options) {
-                    if (opt.value === currentUser.name || opt.value === currentUser.username) { opt.selected = true; break; }
-                }
+    // 更新员工下拉
+    const empSel = document.getElementById('posEmployee');
+    if (empSel) {
+        const staff = allUsers.filter(u => u.role !== 'owner' && u.role !== 'admin');
+        empSel.innerHTML = staff.map(u => `<option value="${u.id}">${u.name || u.username}</option>`).join('');
+        if (currentUser) {
+            for (let opt of empSel.options) {
+                if (opt.value === currentUser.id) { opt.selected = true; break; }
             }
         }
-    });
-}
-
-function updateInventorySelects() {
-    ['stockInProduct', 'stockOutProduct'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = allInventory.map(i =>
-                `<option value="${i.id}">${i.name} (库存: ${i.quantity || 0})</option>`
-            ).join('');
-        }
-    });
-}
-
-function updateCommissionStaffSelect() {
-    const sel = document.getElementById('commissionStaffFilter');
-    if (sel) {
-        sel.innerHTML = '<option value="all">全部员工</option>' +
-            allUsers.filter(u => u.role !== 'owner').map(u =>
-                `<option value="${u.name || u.username}">${u.name || u.username}</option>`
-            ).join('');
     }
+    // 更新车辆下拉
+    const vehSel = document.getElementById('posVehicle');
+    if (vehSel) {
+        vehSel.innerHTML = '<option value="">选择车辆</option>' +
+            allVehicles.map(v => `<option value="${v.id}">${v.plate_number} (${v.brand || ''} ${v.model || ''})</option>`).join('');
+    }
+    updatePOSPrice();
 }
 
-function updatePrice() {
-    const vehicle = parseFloat(document.getElementById('vehicleSelect').value) || 0;
-    const service = parseFloat(document.getElementById('serviceSelect').value) || 0;
-    const custom = parseFloat(document.getElementById('priceInput').value) || 0;
-    const base = custom > 0 ? custom : vehicle + service;
-    const vat = base * (config.vatRate || 15) / 100;
-    document.getElementById('subtotalSpan').textContent = base.toFixed(2) + ' SAR';
-    document.getElementById('vatSpan').textContent = vat.toFixed(2) + ' SAR';
-    document.getElementById('totalSpan').textContent = (base + vat).toFixed(2) + ' SAR';
+function updatePOSPrice() {
+    const servicePrices = {
+        '基础清洗': 30,
+        '深度清洗': 55,
+        '外部抛光': 65,
+        '内部护理': 70,
+        '全车精洗': 110
+    };
+    const service = document.getElementById('posService').value;
+    const amount = servicePrices[service] || 30;
+    const vat = amount * (config.vatRate || 15) / 100;
+    document.getElementById('posAmount').value = amount;
+    document.getElementById('posSubtotal').textContent = amount.toFixed(2) + ' SAR';
+    document.getElementById('posVat').textContent = vat.toFixed(2) + ' SAR';
+    document.getElementById('posTotal').textContent = (amount + vat).toFixed(2) + ' SAR';
 }
 
-document.getElementById('vehicleSelect')?.addEventListener('change', updatePrice);
-document.getElementById('serviceSelect')?.addEventListener('change', updatePrice);
-document.getElementById('priceInput')?.addEventListener('input', updatePrice);
+document.getElementById('posService')?.addEventListener('change', updatePOSPrice);
+document.getElementById('posAmount')?.addEventListener('input', function() {
+    const amount = parseFloat(this.value) || 0;
+    const vat = amount * (config.vatRate || 15) / 100;
+    document.getElementById('posSubtotal').textContent = amount.toFixed(2) + ' SAR';
+    document.getElementById('posVat').textContent = vat.toFixed(2) + ' SAR';
+    document.getElementById('posTotal').textContent = (amount + vat).toFixed(2) + ' SAR';
+});
 
-document.getElementById('plateInput')?.addEventListener('blur', function() {
+document.getElementById('posPlate')?.addEventListener('blur', function() {
     const plate = this.value.trim().toUpperCase();
     if (plate) {
         const customer = allCustomers.find(c => c.plate_number === plate);
-        const info = document.getElementById('customerQuickInfo');
+        const info = document.getElementById('posCustomerInfo');
         if (customer) {
             info.classList.remove('hidden');
-            document.getElementById('quickCustomerName').textContent = customer.name || '未知';
-            document.getElementById('quickCustomerBalance').textContent = (customer.balance || 0).toFixed(2) + ' SAR';
-            document.getElementById('quickCustomerPoints').textContent = customer.points || 0;
-            document.getElementById('quickCustomerLevel').textContent = customer.level || '普通';
+            document.getElementById('posCustName').textContent = customer.name || '未知';
+            document.getElementById('posCustBalance').textContent = (customer.balance || 0).toFixed(2) + ' SAR';
+            document.getElementById('posCustPoints').textContent = customer.points || 0;
+            document.getElementById('posCustLevel').textContent = customer.level || '普通';
+            // 自动选择客户
+            const custSel = document.getElementById('posCustomer');
+            if (custSel) {
+                for (let opt of custSel.options) {
+                    if (opt.value === customer.id) { opt.selected = true; break; }
+                }
+            }
         } else {
             info.classList.add('hidden');
         }
     }
 });
 
-async function saveOrder() {
+// ================================================================
+//  POS 功能
+// ================================================================
+function posFindCustomer() {
+    const plate = document.getElementById('posPlate').value.trim().toUpperCase();
+    if (!plate) { showToast('请输入车牌号'); return; }
+    const customer = allCustomers.find(c => c.plate_number === plate);
+    const info = document.getElementById('posCustomerInfo');
+    if (customer) {
+        info.classList.remove('hidden');
+        document.getElementById('posCustName').textContent = customer.name || '未知';
+        document.getElementById('posCustBalance').textContent = (customer.balance || 0).toFixed(2) + ' SAR';
+        document.getElementById('posCustPoints').textContent = customer.points || 0;
+        document.getElementById('posCustLevel').textContent = customer.level || '普通';
+        showToast('✅ 找到客户: ' + customer.name);
+    } else {
+        info.classList.add('hidden');
+        showToast('❌ 未找到客户');
+    }
+}
+
+async function posSaveOrder() {
     if (!currentUser) { showToast('请先登录'); return; }
     if (!ROLE_PERMISSIONS[currentUser.role]?.cashier) { showToast('您没有收银权限'); return; }
-    const plate = document.getElementById('plateInput').value.trim().toUpperCase();
+
+    const plate = document.getElementById('posPlate').value.trim().toUpperCase();
     if (!plate) { showToast('请输入车牌号'); return; }
-    const total = parseFloat(document.getElementById('totalSpan').textContent) || 0;
-    if (total <= 0) { showToast('金额必须大于0'); return; }
+    const amount = parseFloat(document.getElementById('posAmount').value) || 0;
+    if (amount <= 0) { showToast('金额必须大于0'); return; }
 
     try {
-        const staffName = document.getElementById('staffSelect').value || currentUser.name || currentUser.username;
+        const customerId = document.getElementById('posCustomer').value || null;
+        const employeeId = document.getElementById('posEmployee').value || null;
+        const serviceName = document.getElementById('posService').value;
+        const paymentMethod = document.getElementById('posPayment').value;
+        const vat = amount * (config.vatRate || 15) / 100;
+        const total = amount + vat;
+
+        // 生成订单号
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = allOrders.filter(o => (o.date || '').startsWith(today));
+        const orderNumber = 'ORD-' + today.replace(/-/g, '') + '-' + String(todayOrders.length + 1).padStart(4, '0');
+
         const orderData = {
+            order_number: orderNumber,
             plate_number: plate,
+            customer_id: customerId,
+            employee_id: employeeId,
+            staff_name: employeeId ? allUsers.find(u => u.id === employeeId)?.name : currentUser.name,
+            service_name: serviceName,
+            amount: amount,
+            vat: vat,
             total: total,
-            amount: parseFloat(document.getElementById('subtotalSpan').textContent) || 0,
-            vat: parseFloat(document.getElementById('vatSpan').textContent) || 0,
-            payment_method: document.getElementById('paymentSelect').value,
-            staff_name: staffName,
-            service_name: document.getElementById('serviceSelect').selectedOptions[0]?.text || '无',
-            date: new Date().toISOString().split('T')[0],
-            branch_id: currentBranch !== 'all' ? currentBranch : null,
-            branch_name: currentBranch !== 'all' ? allBranches.find(b => b.id === currentBranch)?.name : null
+            payment_method: paymentMethod,
+            status: 'completed',
+            payment_status: 'paid',
+            date: today,
+            store_id: currentBranch !== 'all' ? currentBranch : null,
+            created_at: new Date().toISOString()
         };
+
         const { data, error } = await supabaseClient.from('orders').insert([orderData]).select();
         if (error) throw new Error(error.message);
         if (data && data.length > 0) allOrders.unshift(data[0]);
 
-        // 自动生成提成
-        const commissionRate = config.commissionRate || 5;
-        const commissionAmount = total * commissionRate / 100;
-        if (commissionAmount > 0 && staffName) {
-            await supabaseClient.from('employee_commission').insert([{
-                employee_name: staffName,
-                order_id: data[0].id,
-                service_name: orderData.service_name,
-                amount: total,
-                commission_rate: commissionRate,
-                commission_amount: commissionAmount,
-                date: orderData.date,
-                status: '待结算'
-            }]);
-        }
+        // 记录支付
+        await supabaseClient.from('payments').insert([{
+            order_id: data[0].id,
+            amount: total,
+            payment_method: paymentMethod,
+            processed_by: currentUser.id
+        }]);
+
+        // 自动处理：扣库存、积分、提成
+        await processOrderCompletion(data[0].id);
 
         refreshAll();
-        showToast('✅ 订单保存成功: ' + total.toFixed(2) + ' SAR (提成: ' + commissionAmount.toFixed(2) + ' SAR)');
-        document.getElementById('plateInput').value = '';
-        document.getElementById('priceInput').value = '';
-        document.getElementById('customerQuickInfo').classList.add('hidden');
-        updatePrice();
+        showToast('✅ 订单保存成功: ' + total.toFixed(2) + ' SAR');
+        document.getElementById('posPlate').value = '';
+        document.getElementById('posAmount').value = '';
+        document.getElementById('posCustomerInfo').classList.add('hidden');
+        updatePOSPrice();
     } catch (error) {
         showToast('❌ 保存失败: ' + error.message);
     }
+}
+
+// ================================================================
+//  订单完成处理（扣库存、积分、提成）
+// ================================================================
+async function processOrderCompletion(orderId) {
+    try {
+        const { data: order } = await supabaseClient
+            .from('orders')
+            .select('customer_id, employee_id, total, service_name')
+            .eq('id', orderId)
+            .single();
+        if (!order) return;
+
+        // 1. 扣库存（如果有产品关联）
+        // 简化版：按服务名称匹配产品
+        const product = allProducts.find(p => p.name === order.service_name);
+        if (product) {
+            const inventory = allInventory.find(i => i.product_id === product.id);
+            if (inventory && inventory.quantity > 0) {
+                const newQty = Math.max(0, inventory.quantity - 1);
+                await supabaseClient
+                    .from('inventory')
+                    .update({ quantity: newQty, last_updated: new Date().toISOString() })
+                    .eq('id', inventory.id);
+                
+                await supabaseClient
+                    .from('inventory_logs')
+                    .insert([{
+                        product_id: product.id,
+                        quantity_change: -1,
+                        previous_quantity: inventory.quantity,
+                        new_quantity: newQty,
+                        type: 'sale',
+                        reference_id: orderId,
+                        reference_type: 'order',
+                        created_by: currentUser?.id
+                    }]);
+            }
+        }
+
+        // 2. 更新客户积分和等级
+        if (order.customer_id) {
+            const pointsEarned = Math.floor(order.total);
+            const { data: customer } = await supabaseClient
+                .from('customers')
+                .select('points, total_spent')
+                .eq('id', order.customer_id)
+                .single();
+            
+            if (customer) {
+                const newPoints = (customer.points || 0) + pointsEarned;
+                const newSpent = (customer.total_spent || 0) + order.total;
+                let level = '普通';
+                if (newSpent >= 10000) level = '钻石';
+                else if (newSpent >= 5000) level = '黄金';
+                else if (newSpent >= 2000) level = '白银';
+                else if (newSpent >= 500) level = '青铜';
+
+                await supabaseClient
+                    .from('customers')
+                    .update({
+                        points: newPoints,
+                        total_spent: newSpent,
+                        level: level,
+                        visit_count: (customer.visit_count || 0) + 1,
+                        last_visit: new Date().toISOString().split('T')[0]
+                    })
+                    .eq('id', order.customer_id);
+            }
+        }
+
+        // 3. 计算提成
+        if (order.employee_id) {
+            const rate = config.commissionRate || 5;
+            const commissionAmount = order.total * rate / 100;
+            if (commissionAmount > 0) {
+                await supabaseClient
+                    .from('commissions')
+                    .insert([{
+                        employee_id: order.employee_id,
+                        order_id: orderId,
+                        amount: order.total,
+                        rate: rate,
+                        commission_amount: commissionAmount,
+                        status: 'pending'
+                    }]);
+            }
+        }
+
+        console.log('✅ 订单处理完成: 库存扣减、积分更新、提成计算');
+    } catch (error) {
+        console.error('订单处理错误:', error);
+    }
+}
+
+// ================================================================
+//  订单管理（状态机）
+// ================================================================
+async function loadOrders() {
+    const statusFilter = document.getElementById('orderStatusFilter')?.value || 'all';
+    const dateFilter = document.getElementById('orderDateFilter')?.value || '';
+    const search = document.getElementById('orderSearch')?.value?.trim() || '';
+
+    let orders = getFilteredOrders();
+    if (statusFilter !== 'all') {
+        orders = orders.filter(o => o.status === statusFilter);
+    }
+    if (dateFilter) {
+        orders = orders.filter(o => o.date === dateFilter);
+    }
+    if (search) {
+        orders = orders.filter(o => 
+            o.plate_number?.includes(search) || 
+            o.order_number?.includes(search) ||
+            o.staff_name?.includes(search)
+        );
+    }
+
+    const list = document.getElementById('ordersList');
+    list.innerHTML = orders.slice(0, 50).map(o => `
+        <div class="order-card bg-white p-4 rounded-xl shadow-sm border hover:border-blue-300" onclick="showOrderDetail('${o.id}')">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="font-bold text-blue-600">#${o.order_number || o.id.slice(0, 8)}</span>
+                    <span class="text-sm text-gray-400 ml-2">${o.date || ''}</span>
+                    <span class="status-badge ${ORDER_STATUS_CLASSES[o.status] || 'status-pending'}">${ORDER_STATUS_LABELS[o.status] || o.status}</span>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold text-lg">${(o.total || 0).toFixed(2)} SAR</div>
+                    <div class="text-sm text-gray-400">${o.plate_number || 'N/A'} | ${o.staff_name || ''}</div>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-2 flex-wrap">
+                ${o.status === 'pending' ? `<button onclick="event.stopPropagation();updateOrderStatus('${o.id}','confirmed')" class="btn-success btn-sm">确认</button>` : ''}
+                ${o.status === 'confirmed' ? `<button onclick="event.stopPropagation();updateOrderStatus('${o.id}','in_progress')" class="btn-warning btn-sm">开始施工</button>` : ''}
+                ${o.status === 'in_progress' ? `<button onclick="event.stopPropagation();updateOrderStatus('${o.id}','completed')" class="btn-primary btn-sm">完成</button>` : ''}
+                ${o.status === 'pending' || o.status === 'confirmed' ? `<button onclick="event.stopPropagation();updateOrderStatus('${o.id}','cancelled')" class="btn-danger btn-sm">取消</button>` : ''}
+            </div>
+        </div>
+    `).join('') || '<div class="text-center text-gray-400">暂无订单</div>';
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const { data: order } = await supabaseClient
+            .from('orders')
+            .select('status')
+            .eq('id', orderId)
+            .single();
+        
+        if (!order) { showToast('订单不存在'); return; }
+        
+        // 状态转换验证
+        const transitions = {
+            pending: ['confirmed', 'cancelled'],
+            confirmed: ['in_progress', 'cancelled'],
+            in_progress: ['completed', 'cancelled'],
+            completed: ['refunded'],
+            cancelled: [],
+            refunded: []
+        };
+        
+        if (!transitions[order.status]?.includes(newStatus)) {
+            showToast('❌ 状态转换不允许: ' + ORDER_STATUS_LABELS[order.status] + ' → ' + ORDER_STATUS_LABELS[newStatus]);
+            return;
+        }
+
+        const updateData = { status: newStatus, updated_at: new Date().toISOString() };
+        if (newStatus === 'completed') {
+            updateData.completed_at = new Date().toISOString();
+        }
+
+        const { error } = await supabaseClient
+            .from('orders')
+            .update(updateData)
+            .eq('id', orderId);
+
+        if (error) throw new Error(error.message);
+        
+        // 如果订单完成，触发后续操作
+        if (newStatus === 'completed') {
+            await processOrderCompletion(orderId);
+        }
+
+        showToast('✅ 订单已更新: ' + ORDER_STATUS_LABELS[newStatus]);
+        loadOrders();
+        refreshAll();
+    } catch (error) {
+        showToast('❌ 更新失败: ' + error.message);
+    }
+}
+
+async function showOrderDetail(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) { showToast('订单不存在'); return; }
+
+    const customer = allCustomers.find(c => c.id === order.customer_id);
+    const employee = allUsers.find(u => u.id === order.employee_id);
+
+    const content = document.getElementById('orderDetailContent');
+    content.innerHTML = `
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div><span class="text-gray-500">订单号</span><div class="font-bold">#${order.order_number || order.id.slice(0, 8)}</div></div>
+                <div><span class="text-gray-500">状态</span><div><span class="status-badge ${ORDER_STATUS_CLASSES[order.status] || 'status-pending'}">${ORDER_STATUS_LABELS[order.status] || order.status}</span></div></div>
+                <div><span class="text-gray-500">日期</span><div>${order.date || ''}</div></div>
+                <div><span class="text-gray-500">车牌</span><div>${order.plate_number || 'N/A'}</div></div>
+                <div><span class="text-gray-500">客户</span><div>${customer?.name || '散客'}</div></div>
+                <div><span class="text-gray-500">员工</span><div>${employee?.name || order.staff_name || 'N/A'}</div></div>
+                <div><span class="text-gray-500">服务</span><div>${order.service_name || 'N/A'}</div></div>
+                <div><span class="text-gray-500">支付方式</span><div>${order.payment_method || 'N/A'}</div></div>
+            </div>
+            <div class="border-t pt-3">
+                <div class="flex justify-between"><span>金额</span><span>${(order.amount || 0).toFixed(2)} SAR</span></div>
+                <div class="flex justify-between"><span>增值税</span><span>${(order.vat || 0).toFixed(2)} SAR</span></div>
+                <div class="flex justify-between text-xl font-bold text-blue-600"><span>总计</span><span>${(order.total || 0).toFixed(2)} SAR</span></div>
+            </div>
+            ${order.status === 'completed' ? `
+            <div class="border-t pt-3 text-sm text-gray-500">
+                <div>✅ 完成时间: ${order.completed_at ? new Date(order.completed_at).toLocaleString() : ''}</div>
+            </div>
+            ` : ''}
+            <div class="flex gap-2 flex-wrap border-t pt-3">
+                ${order.status === 'pending' ? `<button onclick="updateOrderStatus('${order.id}','confirmed');closeModal('orderDetailModal')" class="btn-success btn-sm">确认订单</button>` : ''}
+                ${order.status === 'confirmed' ? `<button onclick="updateOrderStatus('${order.id}','in_progress');closeModal('orderDetailModal')" class="btn-warning btn-sm">开始施工</button>` : ''}
+                ${order.status === 'in_progress' ? `<button onclick="updateOrderStatus('${order.id}','completed');closeModal('orderDetailModal')" class="btn-primary btn-sm">完成订单</button>` : ''}
+                ${order.status === 'pending' || order.status === 'confirmed' ? `<button onclick="updateOrderStatus('${order.id}','cancelled');closeModal('orderDetailModal')" class="btn-danger btn-sm">取消订单</button>` : ''}
+                <button onclick="closeModal('orderDetailModal')" class="btn-outline btn-sm">关闭</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('orderDetailTitle').textContent = '订单详情 #' + (order.order_number || order.id.slice(0, 8));
+    document.getElementById('orderDetailModal').classList.remove('hidden');
 }
 
 // ================================================================
@@ -1196,19 +1354,18 @@ async function addCustomer() {
         let existing = allCustomers.find(c => c.phone === phone || c.plate_number === plate);
         if (existing) {
             const newBalance = (existing.balance || 0) + amount;
-            await supabaseClient.from('customers').update({
-                balance: newBalance,
-                name: name,
-                total_spent: (existing.total_spent || 0) + amount
-            }).eq('id', existing.id);
+            await supabaseClient
+                .from('customers')
+                .update({ balance: newBalance, name: name, total_spent: (existing.total_spent || 0) + amount })
+                .eq('id', existing.id);
             existing.balance = newBalance;
             existing.name = name;
             existing.total_spent = (existing.total_spent || 0) + amount;
         } else {
-            const { data, error } = await supabaseClient.from('customers').insert([{
-                phone, name, plate_number: plate, balance: amount, points: 0,
-                level: '普通', total_spent: amount, visit_count: 1, last_visit: new Date().toISOString().split('T')[0]
-            }]).select();
+            const { data, error } = await supabaseClient
+                .from('customers')
+                .insert([{ phone, name, plate_number: plate, balance: amount, points: 0, level: '普通', total_spent: amount, visit_count: 1, last_visit: new Date().toISOString().split('T')[0] }])
+                .select();
             if (error) throw new Error(error.message);
             if (data && data.length > 0) allCustomers.unshift(data[0]);
         }
@@ -1223,67 +1380,143 @@ async function addCustomer() {
     }
 }
 
-function applyCustomerFilter() {
-    customerFilter.search = document.getElementById('customerSearch').value.trim();
-    customerFilter.level = document.getElementById('customerLevelFilter').value;
-    refreshCustomers();
-}
-
-function resetCustomerFilter() {
-    document.getElementById('customerSearch').value = '';
-    document.getElementById('customerLevelFilter').value = 'all';
-    customerFilter = { search: '', level: 'all' };
-    refreshCustomers();
+function refreshCustomers() {
+    let customers = allCustomers;
+    const search = document.getElementById('customerSearch')?.value?.trim() || '';
+    const level = document.getElementById('customerLevelFilter')?.value || 'all';
+    if (search) {
+        customers = customers.filter(c => c.name?.includes(search) || c.phone?.includes(search) || c.plate_number?.includes(search));
+    }
+    if (level !== 'all') {
+        customers = customers.filter(c => c.level === level);
+    }
+    const list = document.getElementById('membersList');
+    list.innerHTML = customers.map(c => {
+        const levelClass = 'customer-level customer-level-' + (c.level || 'normal').toLowerCase();
+        return `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+            <div><strong>${c.name || 'Unknown'}</strong><span class="${levelClass}">${c.level || '普通'}</span><br><small>${c.phone || ''} | ${c.plate_number || ''}</small></div>
+            <div class="text-right"><div>余额: <span class="font-bold text-green-600">${(c.balance || 0).toFixed(2)} SAR</span></div><div class="text-sm">积分: ${c.points || 0} | 到店: ${c.visit_count || 0}次</div></div>
+        </div>`;
+    }).join('') || '<div class="text-center text-gray-400">暂无客户</div>';
 }
 
 // ================================================================
-//  库存进销存
+//  库存管理
 // ================================================================
-function openStockInModal() { updateInventorySelects(); document.getElementById('stockInModal').classList.remove('hidden'); document.getElementById('stockInQty').value = ''; document.getElementById('stockInPrice').value = ''; document.getElementById('stockInSupplier').value = ''; document.getElementById('stockInNote').value = ''; }
-function openStockOutModal() { updateInventorySelects(); document.getElementById('stockOutModal').classList.remove('hidden'); document.getElementById('stockOutQty').value = ''; document.getElementById('stockOutNote').value = ''; }
-function openAddProductModal() { document.getElementById('addProductModal').classList.remove('hidden'); document.getElementById('newProductName').value = ''; document.getElementById('newProductQty').value = ''; document.getElementById('newProductCost').value = ''; document.getElementById('newProductMinQty').value = '5'; document.getElementById('newProductUnit').value = '瓶'; }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function refreshInventory() {
+    const search = document.getElementById('invSearch')?.value?.trim() || '';
+    let items = allInventory;
+    if (search) {
+        items = items.filter(i => i.name?.includes(search));
+    }
+    document.getElementById('invTotalItems').textContent = items.length;
+    document.getElementById('invTotalQty').textContent = items.reduce((s, i) => s + (i.quantity || 0), 0);
+    document.getElementById('invLowItems').textContent = items.filter(i => (i.quantity || 0) <= (i.min_qty || 5)).length;
+    document.getElementById('invTotalValue').textContent = items.reduce((s, i) => s + ((i.quantity || 0) * (i.cost || 0)), 0).toFixed(2) + ' SAR';
+
+    const list = document.getElementById('inventoryList');
+    list.innerHTML = items.map(i => {
+        const isLow = (i.quantity || 0) <= (i.min_qty || 5);
+        return `<div class="${isLow ? 'stock-low' : 'stock-normal'} flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border">
+            <div><span class="font-medium">${i.name}</span><span class="text-xs text-gray-400 ml-2">${i.category || '其他'} · ${i.unit || '个'}</span>${isLow ? '<span class="text-xs text-red-500 ml-2">⚠️ 低库存</span>' : ''}</div>
+            <div class="flex items-center gap-4"><span class="font-bold ${isLow ? 'text-red-600' : 'text-green-600'}">${i.quantity || 0}</span><span class="text-sm text-gray-400">${(i.cost || 0).toFixed(2)} SAR</span></div>
+        </div>`;
+    }).join('') || '<div class="text-center text-gray-400">暂无库存</div>';
+    refreshStockLogs();
+}
+
+function refreshStockLogs() {
+    let logs = [];
+    allStockIn.forEach(s => logs.push({ type: 'in', ...s }));
+    allStockOut.forEach(s => logs.push({ type: 'out', ...s }));
+    logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const list = document.getElementById('stockLogList');
+    list.innerHTML = logs.slice(0, 30).map(l => {
+        const icon = l.type === 'in' ? '📥' : '📤';
+        const color = l.type === 'in' ? 'text-green-600' : 'text-amber-600';
+        return `<div class="flex justify-between p-2 border-b"><span>${icon} <span class="${color}">${l.type === 'in' ? '入库' : '出库'}</span></span><span>${l.product_name || '未知'} × ${l.quantity}</span><span class="text-gray-400 text-xs">${l.created_at ? new Date(l.created_at).toLocaleString() : ''}</span></div>`;
+    }).join('') || '<div class="text-center text-gray-400">暂无记录</div>';
+}
+
+function openStockInModal() {
+    const sel = document.getElementById('stockInProduct');
+    sel.innerHTML = allInventory.map(i => `<option value="${i.id}">${i.name} (库存: ${i.quantity || 0})</option>`).join('');
+    document.getElementById('stockInModal').classList.remove('hidden');
+    document.getElementById('stockInQty').value = '';
+    document.getElementById('stockInPrice').value = '';
+    document.getElementById('stockInSupplier').value = '';
+}
+
+function openStockOutModal() {
+    const sel = document.getElementById('stockOutProduct');
+    sel.innerHTML = allInventory.map(i => `<option value="${i.id}">${i.name} (库存: ${i.quantity || 0})</option>`).join('');
+    document.getElementById('stockOutModal').classList.remove('hidden');
+    document.getElementById('stockOutQty').value = '';
+}
+
+function openAddProductModal() {
+    document.getElementById('addProductModal').classList.remove('hidden');
+    document.getElementById('newProductName').value = '';
+    document.getElementById('newProductQty').value = '';
+    document.getElementById('newProductCost').value = '';
+    document.getElementById('newProductMinQty').value = '5';
+    document.getElementById('newProductUnit').value = '瓶';
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
 
 async function submitStockIn() {
     const productId = document.getElementById('stockInProduct').value;
     const qty = parseInt(document.getElementById('stockInQty').value);
     const price = parseFloat(document.getElementById('stockInPrice').value) || 0;
     const supplier = document.getElementById('stockInSupplier').value || '未知';
-    const note = document.getElementById('stockInNote').value || '';
     if (!productId || !qty || qty <= 0) { showToast('请选择产品并输入数量'); return; }
     try {
-        const { data, error } = await supabaseClient.from('stock_in').insert([{
-            inventory_id: productId, quantity: qty, unit_price: price, total_price: price * qty,
-            supplier: supplier, note: note, created_by: currentUser?.name || currentUser?.username || '系统'
-        }]).select();
-        if (error) throw new Error(error.message);
-        if (data && data.length > 0) allStockIn.unshift(data[0]);
+        const product = allInventory.find(i => i.id === productId);
+        const newQty = (product.quantity || 0) + qty;
+        await supabaseClient
+            .from('inventory')
+            .update({ quantity: newQty, cost: price || product.cost, last_updated: new Date().toISOString() })
+            .eq('id', productId);
+        product.quantity = newQty;
+        if (price) product.cost = price;
+        await supabaseClient
+            .from('stock_in')
+            .insert([{ inventory_id: productId, product_name: product.name, quantity: qty, unit_price: price, total_price: price * qty, supplier: supplier, created_by: currentUser?.name || '系统' }]);
         closeModal('stockInModal');
         refreshInventory();
         showToast('✅ 入库成功: ' + qty + ' 件');
-    } catch (error) { showToast('❌ 入库失败: ' + error.message); }
+    } catch (error) {
+        showToast('❌ 入库失败: ' + error.message);
+    }
 }
 
 async function submitStockOut() {
     const productId = document.getElementById('stockOutProduct').value;
     const qty = parseInt(document.getElementById('stockOutQty').value);
     const reason = document.getElementById('stockOutReason').value;
-    const note = document.getElementById('stockOutNote').value || '';
     if (!productId || !qty || qty <= 0) { showToast('请选择产品并输入数量'); return; }
     const product = allInventory.find(i => i.id === productId);
     if (!product) { showToast('产品不存在'); return; }
     if ((product.quantity || 0) < qty) { showToast('库存不足！当前库存: ' + product.quantity); return; }
     try {
-        const { data, error } = await supabaseClient.from('stock_out').insert([{
-            inventory_id: productId, quantity: qty, reason: reason, note: note,
-            created_by: currentUser?.name || currentUser?.username || '系统'
-        }]).select();
-        if (error) throw new Error(error.message);
-        if (data && data.length > 0) allStockOut.unshift(data[0]);
+        const newQty = product.quantity - qty;
+        await supabaseClient
+            .from('inventory')
+            .update({ quantity: newQty, last_updated: new Date().toISOString() })
+            .eq('id', productId);
+        product.quantity = newQty;
+        await supabaseClient
+            .from('stock_out')
+            .insert([{ inventory_id: productId, product_name: product.name, quantity: qty, reason: reason, created_by: currentUser?.name || '系统' }]);
         closeModal('stockOutModal');
         refreshInventory();
         showToast('✅ 出库成功: ' + qty + ' 件');
-    } catch (error) { showToast('❌ 出库失败: ' + error.message); }
+    } catch (error) {
+        showToast('❌ 出库失败: ' + error.message);
+    }
 }
 
 async function submitNewProduct() {
@@ -1295,62 +1528,92 @@ async function submitNewProduct() {
     const minQty = parseInt(document.getElementById('newProductMinQty').value) || 5;
     if (!name) { showToast('请输入产品名称'); return; }
     try {
-        const { data, error } = await supabaseClient.from('inventory').insert([{
-            name, category, unit, quantity: qty, cost, min_qty: minQty
-        }]).select();
+        const { data, error } = await supabaseClient
+            .from('inventory')
+            .insert([{ name, category, unit, quantity: qty, cost, min_qty: minQty }])
+            .select();
         if (error) throw new Error(error.message);
         if (data && data.length > 0) allInventory.unshift(data[0]);
         closeModal('addProductModal');
         refreshInventory();
         showToast('✅ 产品已添加: ' + name);
-    } catch (error) { showToast('❌ 添加失败: ' + error.message); }
-}
-
-function applyInvFilter() {
-    invFilter.category = document.getElementById('invCategoryFilter').value;
-    invFilter.search = document.getElementById('invSearch').value.trim();
-    refreshInventory();
-}
-
-function resetInvFilter() {
-    document.getElementById('invCategoryFilter').value = 'all';
-    document.getElementById('invSearch').value = '';
-    invFilter = { category: 'all', search: '' };
-    refreshInventory();
+    } catch (error) {
+        showToast('❌ 添加失败: ' + error.message);
+    }
 }
 
 // ================================================================
 //  考勤管理
 // ================================================================
+function refreshAttendance() {
+    const list = document.getElementById('attendanceList');
+    list.innerHTML = allAttendance.slice(0, 20).map(a =>
+        `<div class="text-sm p-2 bg-gray-50 rounded">${a.staff_name} · ${a.type} · ${a.time ? new Date(a.time).toLocaleString() : ''}</div>`
+    ).join('') || '<div class="text-center text-gray-400">暂无记录</div>';
+    
+    const sel = document.getElementById('attendanceStaff');
+    if (sel) {
+        const staff = allUsers.filter(u => u.role !== 'owner').map(u => u.name || u.username);
+        sel.innerHTML = staff.map(s => `<option value="${s}">${s}</option>`).join('') || '<option value="">暂无员工</option>';
+        if (currentUser?.name) {
+            for (let opt of sel.options) {
+                if (opt.value === currentUser.name || opt.value === currentUser.username) { opt.selected = true; break; }
+            }
+        }
+    }
+}
+
 async function clockIn() {
     if (!currentUser) { showToast('请先登录'); return; }
     const staff = document.getElementById('attendanceStaff').value || currentUser.name || currentUser.username;
     try {
-        const { data, error } = await supabaseClient.from('attendance').insert([{ staff_name: staff, type: '上班打卡', time: new Date().toISOString() }]).select();
+        const { data, error } = await supabaseClient
+            .from('attendance')
+            .insert([{ staff_name: staff, type: '上班打卡', time: new Date().toISOString() }])
+            .select();
         if (error) throw new Error(error.message);
         if (data && data.length > 0) allAttendance.unshift(data[0]);
         refreshAttendance();
         showToast('✅ ' + staff + ' 上班打卡成功');
-    } catch (error) { showToast('❌ 打卡失败: ' + error.message); }
+    } catch (error) {
+        showToast('❌ 打卡失败: ' + error.message);
+    }
 }
 
 async function clockOut() {
     if (!currentUser) { showToast('请先登录'); return; }
     const staff = document.getElementById('attendanceStaff').value || currentUser.name || currentUser.username;
     try {
-        const { data, error } = await supabaseClient.from('attendance').insert([{ staff_name: staff, type: '下班打卡', time: new Date().toISOString() }]).select();
+        const { data, error } = await supabaseClient
+            .from('attendance')
+            .insert([{ staff_name: staff, type: '下班打卡', time: new Date().toISOString() }])
+            .select();
         if (error) throw new Error(error.message);
         if (data && data.length > 0) allAttendance.unshift(data[0]);
         refreshAttendance();
         showToast('✅ ' + staff + ' 下班打卡成功');
-    } catch (error) { showToast('❌ 打卡失败: ' + error.message); }
+    } catch (error) {
+        showToast('❌ 打卡失败: ' + error.message);
+    }
 }
 
 // ================================================================
-//  P2: 财务日报 + 提成
+//  员工管理
+// ================================================================
+function refreshEmployees() {
+    const list = document.getElementById('employeesList');
+    list.innerHTML = allUsers.map(u =>
+        `<div class="flex justify-between bg-gray-50 p-3 rounded-xl">
+            <span><strong>${u.name || u.username}</strong> <span class="role-badge role-${u.role}">${ROLE_PERMISSIONS[u.role]?.label || u.role}</span></span>
+            <span>${u.username}</span>
+        </div>`
+    ).join('');
+}
+
+// ================================================================
+//  财务管理（日报、提成、客户排行）
 // ================================================================
 function switchReportTab(tab) {
-    currentReportTab = tab;
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
     document.getElementById('reportTabDaily').classList.toggle('hidden', tab !== 'daily');
@@ -1366,39 +1629,32 @@ async function loadDailyReport() {
     const date = picker.value || new Date().toISOString().split('T')[0];
     if (!picker.value) picker.value = date;
 
-    const report = allDailyReports.find(r => r.report_date === date);
-    if (report) {
-        document.getElementById('dailyOrders').textContent = report.total_orders || 0;
-        document.getElementById('dailyRevenue').textContent = (report.total_revenue || 0).toFixed(2) + ' SAR';
-        document.getElementById('dailyVat').textContent = (report.total_vat || 0).toFixed(2) + ' SAR';
-        document.getElementById('dailyProfit').textContent = ((report.total_revenue || 0) - (report.total_cost || 0)).toFixed(2) + ' SAR';
-        document.getElementById('dailyCash').textContent = (report.cash_amount || 0).toFixed(2);
-        document.getElementById('dailyCard').textContent = (report.card_amount || 0).toFixed(2);
-        document.getElementById('dailyMada').textContent = (report.mada_amount || 0).toFixed(2);
-        document.getElementById('dailyApple').textContent = (report.applepay_amount || 0).toFixed(2);
-    } else {
-        const dayOrders = allOrders.filter(o => o.date === date);
-        const total = dayOrders.reduce((s, o) => s + (o.total || 0), 0);
-        const vat = dayOrders.reduce((s, o) => s + (o.vat || 0), 0);
-        document.getElementById('dailyOrders').textContent = dayOrders.length;
-        document.getElementById('dailyRevenue').textContent = total.toFixed(2) + ' SAR';
-        document.getElementById('dailyVat').textContent = vat.toFixed(2) + ' SAR';
-        document.getElementById('dailyProfit').textContent = total.toFixed(2) + ' SAR';
-        document.getElementById('dailyCash').textContent = '0';
-        document.getElementById('dailyCard').textContent = '0';
-        document.getElementById('dailyMada').textContent = '0';
-        document.getElementById('dailyApple').textContent = '0';
-    }
+    const orders = getFilteredOrders().filter(o => o.date === date);
+    const total = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const vat = orders.reduce((s, o) => s + (o.vat || 0), 0);
+    const cash = orders.filter(o => o.payment_method === 'cash').reduce((s, o) => s + (o.total || 0), 0);
+    const card = orders.filter(o => o.payment_method === 'card').reduce((s, o) => s + (o.total || 0), 0);
+    const mada = orders.filter(o => o.payment_method === 'mada').reduce((s, o) => s + (o.total || 0), 0);
+    const apple = orders.filter(o => o.payment_method === 'apple_pay').reduce((s, o) => s + (o.total || 0), 0);
+
+    document.getElementById('dailyOrders').textContent = orders.length;
+    document.getElementById('dailyRevenue').textContent = total.toFixed(2) + ' SAR';
+    document.getElementById('dailyVat').textContent = vat.toFixed(2) + ' SAR';
+    document.getElementById('dailyProfit').textContent = total.toFixed(2) + ' SAR';
+    document.getElementById('dailyCash').textContent = cash.toFixed(2);
+    document.getElementById('dailyCard').textContent = card.toFixed(2);
+    document.getElementById('dailyMada').textContent = mada.toFixed(2);
+    document.getElementById('dailyApple').textContent = apple.toFixed(2);
 }
 
 function exportDailyReport() {
     const date = document.getElementById('reportDatePicker').value || new Date().toISOString().split('T')[0];
-    const dayOrders = allOrders.filter(o => o.date === date);
-    if (dayOrders.length === 0) { showToast('该日暂无数据'); return; }
-    const total = dayOrders.reduce((s, o) => s + (o.total || 0), 0);
-    const data = [['日期', '时间', '车牌', '服务', '金额', '支付方式', '员工']];
-    dayOrders.forEach(o => data.push([o.date || '', o.created_at ? new Date(o.created_at).toLocaleTimeString() : '', o.plate_number || '', o.service_name || '', o.total || 0, o.payment_method || '', o.staff_name || '']));
-    data.push(['', '', '', '', '合计', total.toFixed(2), '']);
+    const orders = getFilteredOrders().filter(o => o.date === date);
+    if (orders.length === 0) { showToast('该日暂无数据'); return; }
+    const total = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const data = [['订单号', '时间', '车牌', '服务', '金额', '支付方式', '员工', '状态']];
+    orders.forEach(o => data.push([o.order_number || '', o.created_at ? new Date(o.created_at).toLocaleTimeString() : '', o.plate_number || '', o.service_name || '', o.total || 0, o.payment_method || '', o.staff_name || '', ORDER_STATUS_LABELS[o.status] || o.status]));
+    data.push(['', '', '', '', '合计', total.toFixed(2), '', '']);
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '日报');
@@ -1409,23 +1665,20 @@ function exportDailyReport() {
 async function loadCommission() {
     const filterStaff = document.getElementById('commissionStaffFilter')?.value || 'all';
     const filterStatus = document.getElementById('commissionStatusFilter')?.value || 'all';
-    const startDate = document.getElementById('commissionDateStart')?.value || '';
-    const endDate = document.getElementById('commissionDateEnd')?.value || '';
 
     let commissions = allCommissions;
-    if (filterStaff !== 'all') commissions = commissions.filter(c => c.employee_name === filterStaff);
+    if (filterStaff !== 'all') commissions = commissions.filter(c => c.employee_id === filterStaff);
     if (filterStatus !== 'all') commissions = commissions.filter(c => c.status === filterStatus);
-    if (startDate) commissions = commissions.filter(c => c.date >= startDate);
-    if (endDate) commissions = commissions.filter(c => c.date <= endDate);
 
     const list = document.getElementById('commissionList');
-    list.innerHTML = commissions.slice(0, 50).map(c =>
-        `<div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-            <div><span class="font-medium">${c.employee_name}</span><span class="text-sm text-gray-500 ml-2">${c.service_name || '服务'}</span></div>
-            <div><span class="text-sm">${c.amount || 0} SAR × ${c.commission_rate || 5}% = </span><span class="font-bold text-green-600">${(c.commission_amount || 0).toFixed(2)} SAR</span>
-            <span class="commission-badge ${c.status === '已结算' ? 'commission-paid' : 'commission-pending'}">${c.status || '待结算'}</span></div>
-        </div>`
-    ).join('') || '<div class="text-center text-gray-400">暂无提成记录</div>';
+    list.innerHTML = commissions.slice(0, 50).map(c => {
+        const employee = allUsers.find(u => u.id === c.employee_id);
+        return `<div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+            <div><span class="font-medium">${employee?.name || '未知'}</span></div>
+            <div><span class="text-sm">${c.amount || 0} SAR × ${c.rate || 5}% = </span><span class="font-bold text-green-600">${(c.commission_amount || 0).toFixed(2)} SAR</span>
+            <span class="commission-badge ${c.status === 'paid' ? 'commission-paid' : 'commission-pending'}">${c.status === 'paid' ? '已结算' : '待结算'}</span></div>
+        </div>`;
+    }).join('') || '<div class="text-center text-gray-400">暂无提成记录</div>';
 
     const total = commissions.reduce((s, c) => s + (c.commission_amount || 0), 0);
     document.getElementById('commissionTotal').textContent = total.toFixed(2) + ' SAR';
@@ -1437,15 +1690,18 @@ async function settleCommission() {
         return;
     }
     const filterStaff = document.getElementById('commissionStaffFilter')?.value || 'all';
-    const pending = allCommissions.filter(c => c.status === '待结算' && (filterStaff === 'all' || c.employee_name === filterStaff));
+    const pending = allCommissions.filter(c => c.status === 'pending' && (filterStaff === 'all' || c.employee_id === filterStaff));
     if (pending.length === 0) { showToast('没有待结算的提成'); return; }
     if (!confirm('确认结算 ' + pending.length + ' 条提成记录？')) return;
 
     try {
         for (const c of pending) {
-            await supabaseClient.from('employee_commission').update({ status: '已结算' }).eq('id', c.id);
+            await supabaseClient
+                .from('commissions')
+                .update({ status: 'paid', updated_at: new Date().toISOString() })
+                .eq('id', c.id);
+            c.status = 'paid';
         }
-        allCommissions.forEach(c => { if (c.status === '待结算' && (filterStaff === 'all' || c.employee_name === filterStaff)) c.status = '已结算'; });
         showToast('✅ 已结算 ' + pending.length + ' 条提成');
         loadCommission();
     } catch (error) {
@@ -1465,70 +1721,45 @@ async function loadCustomerRank() {
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1);
         const levelClass = 'customer-level customer-level-' + (c.level || 'normal').toLowerCase();
         return `<div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-            <div><span class="font-bold mr-2">${medal}</span><span>${c.name || '未知'}</span><span class="${levelClass}">${c.level || '普通'}</span><span class="text-sm text-gray-400 ml-2">${c.plate_number || ''}</span></div>
-            <div class="text-right"><div class="text-sm">积分: ${c.points || 0}</div><div class="text-sm">消费: ${(c.total_spent || 0).toFixed(2)} SAR</div><div class="text-xs text-gray-400">到店: ${c.visit_count || 0}次</div></div>
+            <div><span class="font-bold mr-2">${medal}</span><span>${c.name || '未知'}</span><span class="${levelClass}">${c.level || '普通'}</span></div>
+            <div class="text-right"><div class="text-sm">积分: ${c.points || 0}</div><div class="text-sm">消费: ${(c.total_spent || 0).toFixed(2)} SAR</div></div>
         </div>`;
     }).join('') || '<div class="text-center text-gray-400">暂无客户数据</div>';
 }
 
 // ================================================================
-//  P3: 审计日志
+//  审计日志
 // ================================================================
 async function loadAuditLog() {
     const action = document.getElementById('auditActionFilter')?.value || 'all';
     const table = document.getElementById('auditTableFilter')?.value || 'all';
-    const startDate = document.getElementById('auditDateStart')?.value || '';
-    const endDate = document.getElementById('auditDateEnd')?.value || '';
 
-    let query = supabaseClient.from('audit_log').select('*').order('created_at', { ascending: false });
+    let logs = allAuditLogs;
+    if (action !== 'all') logs = logs.filter(l => l.action === action);
+    if (table !== 'all') logs = logs.filter(l => l.table_name === table);
 
-    if (action !== 'all') query = query.eq('action', action);
-    if (table !== 'all') query = query.eq('table_name', table);
-    if (startDate) query = query.gte('created_at', startDate + 'T00:00:00');
-    if (endDate) query = query.lte('created_at', endDate + 'T23:59:59');
-
-    const { data, error } = await query.limit(100);
-    if (!error && data) {
-        allAuditLogs = data;
-        renderAuditLog();
-    }
-}
-
-function renderAuditLog() {
     const list = document.getElementById('auditLogList');
-    const actions = { INSERT: '🟢 新增', UPDATE: '🟡 修改', DELETE: '🔴 删除' };
-
-    list.innerHTML = allAuditLogs.map(log => {
-        const actionClass = 'audit-' + log.action;
-        return `<div class="audit-entry ${actionClass} flex justify-between p-2 border-b hover:bg-gray-50">
-            <div>
-                <span class="font-medium">${actions[log.action] || log.action}</span>
-                <span class="text-gray-600 ml-2">${log.table_name}</span>
-                <span class="text-xs text-gray-400 ml-2">${log.username || '系统'}</span>
-                ${log.old_data ? `<span class="text-xs text-gray-400 ml-2" title="${JSON.stringify(log.old_data).substring(0, 100)}">📄旧</span>` : ''}
-                ${log.new_data ? `<span class="text-xs text-gray-400 ml-2" title="${JSON.stringify(log.new_data).substring(0, 100)}">📄新</span>` : ''}
-            </div>
-            <div class="text-right">
-                <span class="text-xs text-gray-400">${log.created_at ? new Date(log.created_at).toLocaleString() : ''}</span>
-            </div>
+    list.innerHTML = logs.slice(0, 50).map(log => {
+        const actions = { INSERT: '🟢 新增', UPDATE: '🟡 修改', DELETE: '🔴 删除' };
+        return `<div class="flex justify-between p-2 border-b hover:bg-gray-50">
+            <div><span class="font-medium">${actions[log.action] || log.action}</span><span class="text-gray-600 ml-2">${log.table_name}</span><span class="text-xs text-gray-400 ml-2">${log.username || '系统'}</span></div>
+            <div class="text-right"><span class="text-xs text-gray-400">${log.created_at ? new Date(log.created_at).toLocaleString() : ''}</span></div>
         </div>`;
     }).join('') || '<div class="text-center text-gray-400">暂无审计记录</div>';
 
-    document.getElementById('auditCount').textContent = allAuditLogs.length;
+    document.getElementById('auditCount').textContent = logs.length;
 }
 
 function exportAuditLog() {
     if (allAuditLogs.length === 0) { showToast('暂无数据可导出'); return; }
-    const data = [['时间', '用户', '操作', '表', '记录ID', '旧数据', '新数据']];
+    const data = [['时间', '用户', '操作', '表', '记录ID']];
     allAuditLogs.forEach(log => {
         data.push([
             log.created_at ? new Date(log.created_at).toLocaleString() : '',
             log.username || '',
             log.action || '',
             log.table_name || '',
-            log.record_id || '',
-            log.old_data ? JSON.stringify(log.old_data).substring(0, 100) : '',
-            log.new_data ? JSON.stringify(log.new_data).substring(0, 100) : ''
+            log.record_id || ''
         ]);
     });
     const ws = XLSX.utils.aoa_to_sheet(data);
@@ -1539,171 +1770,11 @@ function exportAuditLog() {
 }
 
 // ================================================================
-//  P3: 备份功能
+//  POS 打印和语音
 // ================================================================
-async function loadBackupConfig() {
-    const { data, error } = await supabaseClient.from('backup_config').select('*').eq('id', 1).single();
-    if (!error && data) {
-        document.getElementById('backupEnabled').value = data.auto_backup_enabled ? 'true' : 'false';
-        document.getElementById('backupFrequency').value = data.backup_frequency || 'daily';
-        document.getElementById('backupRetention').value = data.retention_days || 30;
-        document.getElementById('lastBackupTime').textContent = data.last_backup_at ? new Date(data.last_backup_at).toLocaleString() : '从未备份';
-    }
-}
-
-async function saveBackupConfig() {
-    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以修改备份设置'); return; }
-    const data = {
-        auto_backup_enabled: document.getElementById('backupEnabled').value === 'true',
-        backup_frequency: document.getElementById('backupFrequency').value,
-        retention_days: parseInt(document.getElementById('backupRetention').value) || 30,
-        updated_at: new Date().toISOString()
-    };
-    const { error } = await supabaseClient.from('backup_config').update(data).eq('id', 1);
-    if (error) { showToast('❌ 保存失败: ' + error.message); return; }
-    showToast('✅ 备份设置已保存');
-}
-
-async function manualBackup() {
-    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以执行备份'); return; }
-    showToast('⏳ 正在备份...');
-
-    try {
-        const backupData = {
-            timestamp: new Date().toISOString(),
-            users: allUsers,
-            orders: allOrders,
-            customers: allCustomers,
-            inventory: allInventory,
-            attendance: allAttendance,
-            branches: allBranches,
-            config: config
-        };
-
-        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        await supabaseClient.from('backup_config').update({
-            last_backup_at: new Date().toISOString()
-        }).eq('id', 1);
-
-        document.getElementById('lastBackupTime').textContent = new Date().toLocaleString();
-        showToast('✅ 备份完成');
-    } catch (error) {
-        showToast('❌ 备份失败: ' + error.message);
-    }
-}
-
-function restoreBackup() {
-    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以恢复备份'); return; }
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (!confirm('⚠️ 恢复备份将覆盖当前数据，确认继续？')) return;
-
-                if (data.users) {
-                    for (const u of data.users) {
-                        await supabaseClient.from('users').upsert(u);
-                    }
-                }
-                if (data.orders) {
-                    for (const o of data.orders) {
-                        await supabaseClient.from('orders').upsert(o);
-                    }
-                }
-                if (data.customers) {
-                    for (const c of data.customers) {
-                        await supabaseClient.from('customers').upsert(c);
-                    }
-                }
-                if (data.inventory) {
-                    for (const i of data.inventory) {
-                        await supabaseClient.from('inventory').upsert(i);
-                    }
-                }
-
-                showToast('✅ 备份恢复完成，请刷新页面');
-                setTimeout(() => location.reload(), 2000);
-            } catch(err) {
-                showToast('❌ 恢复失败: ' + err.message);
-            }
-        };
-        reader.readAsText(file);
-    };
-    input.click();
-}
-
-// ================================================================
-//  报表导出
-// ================================================================
-function exportExcel() {
-    const orders = getFilteredOrders();
-    if (orders.length === 0) { showToast('暂无数据可导出'); return; }
-    const data = [['日期', '时间', '车牌', '服务', '金额', '增值税', '总计', '支付方式', '员工']];
-    orders.forEach(o => data.push([o.date || '', o.created_at ? new Date(o.created_at).toLocaleTimeString() : '', o.plate_number || '', o.service_name || '', o.amount || 0, o.vat || 0, o.total || 0, o.payment_method || '', o.staff_name || '']));
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, '报表');
-    XLSX.writeFile(wb, `报表_${new Date().toISOString().split('T')[0]}.xlsx`);
-    showToast('✅ Excel已导出');
-}
-
-function exportPDF() {
-    const orders = getFilteredOrders();
-    if (orders.length === 0) { showToast('暂无数据可导出'); return; }
-    const total = orders.reduce((s, o) => s + (o.total || 0), 0);
-    let html = `<html><head><title>报表</title><style>body{font-family:sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#0091D5;color:white;}</style></head><body>
-        <h2>CarWash Pro 报表</h2><p>导出日期: ${new Date().toLocaleString()}</p>
-        <p>总订单: ${orders.length} | 总收入: ${total.toFixed(2)} SAR</p>
-        <table><tr><th>日期</th><th>车牌</th><th>总计</th><th>员工</th></tr>`;
-    orders.slice(0, 100).forEach(o => { html += `<tr><td>${o.date || ''}</td><td>${o.plate_number || ''}</td><td>${o.total || 0}</td><td>${o.staff_name || ''}</td></tr>`; });
-    html += `</table></body></html>`;
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => win.print(), 500);
-    showToast('✅ PDF已导出');
-}
-
-// ================================================================
-//  设置功能
-// ================================================================
-function loadSettings() {
-    document.getElementById('shopName').value = config.shopName || '';
-    document.getElementById('shopTaxId').value = config.shopTaxId || '';
-    document.getElementById('vatRateInput').value = config.vatRate || 15;
-    document.getElementById('commissionRate').value = config.commissionRate || 5;
-}
-
-function saveSettings() {
-    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以修改设置'); return; }
-    config.shopName = document.getElementById('shopName').value.trim() || config.shopName;
-    config.shopTaxId = document.getElementById('shopTaxId').value.trim();
-    config.vatRate = parseFloat(document.getElementById('vatRateInput').value) || 15;
-    config.commissionRate = parseFloat(document.getElementById('commissionRate').value) || 5;
-    localStorage.setItem('cw_config', JSON.stringify(config));
-    updatePrice();
-    showToast('✅ 设置已保存');
-}
-
-// ================================================================
-//  其他功能
-// ================================================================
-function printReceipt() {
-    const total = document.getElementById('totalSpan').textContent;
-    const plate = document.getElementById('plateInput').value || 'N/A';
+function posPrintReceipt() {
+    const total = document.getElementById('posTotal').textContent;
+    const plate = document.getElementById('posPlate').value || 'N/A';
     const win = window.open('', '_blank');
     win.document.write(`
         <html><head><title>发票</title>
@@ -1723,12 +1794,55 @@ function printReceipt() {
     win.document.close();
 }
 
-function voiceTotal() {
-    const total = document.getElementById('totalSpan').textContent;
+function posVoiceTotal() {
+    const total = document.getElementById('posTotal').textContent;
     const msg = new SpeechSynthesisUtterance('总计 ' + total);
     window.speechSynthesis.speak(msg);
 }
 
+// ================================================================
+//  设置功能
+// ================================================================
+function loadSettings() {
+    document.getElementById('shopName').value = config.shopName || '';
+    document.getElementById('shopTaxId').value = config.shopTaxId || '';
+    document.getElementById('vatRateInput').value = config.vatRate || 15;
+    document.getElementById('commissionRate').value = config.commissionRate || 5;
+}
+
+function saveSettings() {
+    if (!currentUser || currentUser.role !== 'owner') { showToast('只有老板可以修改设置'); return; }
+    config.shopName = document.getElementById('shopName').value.trim() || config.shopName;
+    config.shopTaxId = document.getElementById('shopTaxId').value.trim();
+    config.vatRate = parseFloat(document.getElementById('vatRateInput').value) || 15;
+    config.commissionRate = parseFloat(document.getElementById('commissionRate').value) || 5;
+    localStorage.setItem('cw_config', JSON.stringify(config));
+    updatePOSPrice();
+    showToast('✅ 设置已保存');
+}
+
+// ================================================================
+//  刷新所有
+// ================================================================
+function refreshAll() {
+    refreshDashboard();
+    refreshCustomers();
+    refreshInventory();
+    refreshAttendance();
+    refreshEmployees();
+    refreshPOS();
+    if (document.getElementById('moduleOrders').classList.contains('hidden') === false) loadOrders();
+    if (document.getElementById('moduleReports').classList.contains('hidden') === false) {
+        loadDailyReport();
+        loadCommission();
+        loadCustomerRank();
+    }
+    if (document.getElementById('moduleAudit').classList.contains('hidden') === false) loadAuditLog();
+}
+
+// ================================================================
+//  Toast
+// ================================================================
 function showToast(msg) {
     const t = document.createElement('div');
     t.className = 'toast-custom';
@@ -1744,6 +1858,7 @@ function initCharts() {
     const ctx1 = document.getElementById('serviceStatsChart');
     if (ctx1) {
         if (serviceChart) serviceChart.destroy();
+        const orders = getFilteredOrders();
         const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
         const counts = days.map(() => Math.floor(Math.random() * 10) + 1);
         serviceChart = new Chart(ctx1, {
@@ -1774,6 +1889,7 @@ async function init() {
 
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('reportDatePicker').value = today;
+    document.getElementById('orderDateFilter').value = today;
 
     const session = localStorage.getItem('cw_session');
     if (session) {
@@ -1790,8 +1906,7 @@ async function init() {
                 setupRealtime();
                 refreshAll();
                 switchTab('dashboard');
-                renderSelects();
-                updatePrice();
+                updatePOSPrice();
                 return;
             }
         } catch(e) {}
@@ -1802,7 +1917,7 @@ async function init() {
 
 init();
 
-console.log('✅ CarWash Pro P3 完整版已加载');
+console.log('✅ CarWash Pro 完整版已加载');
 console.log('👤 当前用户:', currentUser?.username || '未登录');
 console.log('📦 客户数:', allCustomers.length);
 console.log('🏪 门店数:', allBranches.length);
