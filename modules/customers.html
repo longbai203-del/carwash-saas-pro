@@ -1,0 +1,14 @@
+<!-- ========== CUSTOMERS ========== -->
+<div id="moduleMembers" class="module-content hidden">
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-blue-600">👥 客户管理</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            <input id="memberPhone" placeholder="电话" class="p-3 border rounded-xl">
+            <input id="memberName" placeholder="姓名" class="p-3 border rounded-xl">
+            <input id="memberPlate" placeholder="车牌" class="p-3 border rounded-xl">
+            <input id="rechargeAmount" placeholder="充值金额" class="p-3 border rounded-xl" type="number">
+            <button onclick="addCustomer()" class="btn-success py-3 rounded-xl font-bold col-span-2">添加 / 充值</button>
+        </div>
+        <div id="membersList" class="mt-5 space-y-2 max-h-96 overflow-auto"></div>
+    </div>
+</div>

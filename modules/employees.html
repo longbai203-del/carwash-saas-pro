@@ -1,0 +1,16 @@
+<!-- ========== EMPLOYEES（员工审核管理） ========== -->
+<div id="moduleEmployees" class="module-content hidden">
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-blue-600 mb-4">👔 员工审核管理</h2>
+        <div class="flex gap-3 mb-4 flex-wrap">
+            <select id="userStatusFilter" class="p-2 border rounded-lg text-sm" onchange="loadUsersForReview()">
+                <option value="all">全部状态</option>
+                <option value="pending">⏳ 待审核</option>
+                <option value="approved">✅ 已通过</option>
+                <option value="rejected">❌ 已拒绝</option>
+            </select>
+            <button onclick="loadUsersForReview()" class="btn-primary btn-sm">刷新</button>
+        </div>
+        <div id="usersReviewList" class="space-y-3 max-h-[500px] overflow-auto"></div>
+    </div>
+</div>

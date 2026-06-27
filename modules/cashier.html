@@ -1,0 +1,25 @@
+<!-- ========== POS ========== -->
+<div id="moduleCashier" class="module-content hidden max-w-6xl mx-auto">
+    <div class="glass-card p-6">
+        <h3 class="font-bold text-gray-800 mb-4">🧼 快速开单</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label class="text-sm font-medium">客户</label><select id="posCustomer" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"><option value="">散客</option></select></div>
+            <div><label class="text-sm font-medium">员工</label><select id="posEmployee" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"></select></div>
+            <div><label class="text-sm font-medium">车牌号</label><input id="posPlate" class="w-full p-3 border rounded-xl uppercase" placeholder="ABC123"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div><label class="text-sm font-medium">服务项目</label><select id="posService" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"><option value="基础清洗">基础清洗 (30 SAR)</option><option value="深度清洗">深度清洗 (55 SAR)</option><option value="外部抛光">外部抛光 (65 SAR)</option><option value="内部护理">内部护理 (70 SAR)</option><option value="全车精洗">全车精洗 (110 SAR)</option></select></div>
+            <div><label class="text-sm font-medium">支付方式</label><select id="posPayment" class="w-full mt-1 p-3 border rounded-xl bg-gray-50"><option value="cash">现金</option><option value="card">银行卡</option><option value="mada">mada</option><option value="apple_pay">Apple Pay</option></select></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div><label class="text-sm font-medium">金额 (SAR)</label><input type="number" id="posAmount" class="w-full p-3 border-2 border-blue-300 rounded-xl text-xl font-bold" value="30"></div>
+        </div>
+        <div class="mt-6 bg-blue-50 p-5 rounded-2xl">
+            <div class="flex justify-between"><span>服务费</span><span id="posSubtotal" class="font-mono">30.00 SAR</span></div>
+            <div class="flex justify-between"><span>增值税 (15%)</span><span id="posVat">4.50 SAR</span></div>
+            <div class="flex justify-between text-2xl font-bold text-blue-600 pt-2 border-t"><span>总计</span><span id="posTotal">34.50 SAR</span></div>
+        </div>
+        <button onclick="posSaveOrder()" class="btn-primary py-3 rounded-xl font-bold w-full mt-4"><i class="fas fa-save"></i> 保存订单</button>
+    </div>
+    <div class="glass-card p-5 mt-5"><h3 class="font-bold">今日订单</h3><div id="todayOrdersList" class="max-h-72 overflow-auto mt-2 space-y-2"></div></div>
+</div>
