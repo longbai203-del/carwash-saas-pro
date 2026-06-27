@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>CarWash Pro | 洗车店管理系统</title>
-    
+
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/dist/xlsx.full.min.js"></script>
@@ -27,7 +27,6 @@
             <span id="syncStatusBadge" class="sync-status sync-syncing mt-2 inline-block">⏳ 连接中...</span>
         </div>
 
-        <!-- 登录 -->
         <div id="loginView">
             <div class="mb-3"><label class="text-sm font-medium text-gray-600">用户名</label><input type="text" id="loginUsername" placeholder="请输入用户名" class="w-full p-3 border border-gray-200 rounded-xl mt-1"></div>
             <div class="mb-3"><label class="text-sm font-medium text-gray-600">密码</label><input type="password" id="loginPassword" placeholder="请输入密码" class="w-full p-3 border border-gray-200 rounded-xl mt-1" onkeydown="if(event.key==='Enter') AppAuth.login()"></div>
@@ -42,7 +41,6 @@
             <div class="mt-3 text-center text-xs text-gray-400">📌 注册后需管理员审核才能登录</div>
         </div>
 
-        <!-- 注册 -->
         <div id="registerView" class="hidden">
             <h3 class="text-xl font-bold text-gray-800 mb-4">📝 注册新账号</h3>
             <p class="text-sm text-gray-500 mb-4">注册后需等待管理员审核</p>
@@ -64,7 +62,6 @@
             </div>
         </div>
 
-        <!-- 忘记密码 -->
         <div id="forgotPasswordView" class="hidden">
             <h3 class="text-xl font-bold text-gray-800 mb-4">🔑 重置密码</h3>
             <div class="space-y-3">
@@ -76,7 +73,6 @@
             </div>
         </div>
 
-        <!-- 修改密码 -->
         <div id="changePasswordView" class="hidden">
             <h3 class="text-xl font-bold text-gray-800 mb-4">🔒 修改密码</h3>
             <div class="space-y-3">
@@ -161,63 +157,55 @@
     </div>
 </div>
 
-<!-- ===== 脚本加载 ===== -->
+<!-- ===== 脚本加载（统一顺序） ===== -->
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/utils.js"></script>
+<script src="services/supabase.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/router.js"></script>
+<script src="js/app.js"></script>
+
 <script>
-    // ============================================================
-    // 配置
-    // ============================================================
-    const SUPABASE_CONFIG = {
-        url: 'https://fhwsbdokxgjqyrbvstxq.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZod3NiZG9reGdqcXlyYnZzdHhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzODQzNjAsImV4cCI6MjA5Nzk2MDM2MH0.XXR5BhhOuF0t6lzOkeYl6OPyva_QCwcV482TzOFV_84'
-    };
-    </script>
-    
-    <script src="js/config.js"></script>
-    <script src="js/store.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/loader.js"></script>
-    <script src="js/app.js"></script>
-    <script src="services/supabase.js"></script>
-    
-    <script>
-    // ============================================================
-    // 启动应用
-    // ============================================================
-    (async function initApp() {
-        // 等待 SupabaseService 初始化
-        let waitCount = 0;
-        while (!window.SupabaseService || !window.SupabaseService._initialized) {
-            if (waitCount > 50) break;
-            await new Promise(r => setTimeout(r, 100));
-            waitCount++;
-        }
-        
-        const session = localStorage.getItem('cw_session');
-        if (session) {
-            try {
-                const s = JSON.parse(session);
-                const users = await AppApi.query('users', { filter: { id: s.id } });
-                if (users && users.length > 0 && users[0].status === 'approved') {
-                    AppStore.set('currentUser', users[0]);
-                    document.getElementById('loginModal').style.display = 'none';
-                    document.getElementById('appContainer').classList.remove('hidden');
-                    await App.init();
-                    AppLoader.load('dashboard');
-                    return;
-                }
-            } catch(e) {
-                console.error('[Init] 自动登录失败:', e);
+// ============================================================
+// 启动应用
+// ============================================================
+(async function initApp() {
+    // 等待 SupabaseService 初始化
+    for (let i = 0; i < 30; i++) {
+        if (window.SupabaseService && window.SupabaseService.isReady()) break;
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    // 注册路由
+    AppRouter.init();
+
+    const session = localStorage.getItem('cw_session');
+    if (session) {
+        try {
+            const s = JSON.parse(session);
+            const users = await AppApi.query('users', { filter: { id: s.id } });
+            if (users && users.length > 0 && users[0].status === 'approved') {
+                AppStore.set('currentUser', users[0]);
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('appContainer').classList.remove('hidden');
+                await App.init();
+                AppRouter.navigate('dashboard');
+                return;
             }
+        } catch(e) {
+            console.error('[Init] 自动登录失败:', e);
         }
-        
-        document.getElementById('loginModal').style.display = 'flex';
-        document.getElementById('syncStatusBadge').textContent = '✅ 已连接';
-        document.getElementById('syncStatusBadge').className = 'sync-status sync-online';
-        console.log('[CarWash Pro] 等待登录...');
-    })();
-    </script>
-    
+    }
+
+    document.getElementById('loginModal').style.display = 'flex';
+    document.getElementById('syncStatusBadge').textContent = '✅ 已连接';
+    document.getElementById('syncStatusBadge').className = 'sync-status sync-online';
+    console.log('[CarWash Pro] 等待登录...');
+})();
+</script>
+
 </body>
 </html>
