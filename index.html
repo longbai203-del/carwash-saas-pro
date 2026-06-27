@@ -479,6 +479,10 @@ function showChangePassword() {
     document.getElementById('registerView').classList.add('hidden');
     document.getElementById('forgotPasswordView').classList.add('hidden');
     document.getElementById('changePasswordView').classList.remove('hidden');
+    // 清空密码字段
+    document.getElementById('changeOldPassword').value = '';
+    document.getElementById('changeNewPassword').value = '';
+    document.getElementById('changeConfirmPassword').value = '';
 }
 
 // ================================================================
@@ -673,6 +677,34 @@ async function changePassword() {
     }
 }
 
+// ================================================================
+//  修改密码（从菜单调用）- 修复缺失的函数
+// ================================================================
+function showChangePasswordFromMenu() {
+    // 检查是否已登录
+    if (!currentUser) {
+        showToast('请先登录');
+        document.getElementById('loginModal').style.display = 'flex';
+        return;
+    }
+    
+    // 显示登录模态框（如果隐藏了）
+    document.getElementById('loginModal').style.display = 'flex';
+    
+    // 切换到修改密码视图（复用现有函数）
+    showChangePassword();
+    
+    // 自动填充当前用户名
+    document.getElementById('changeUsername').value = currentUser.username || '';
+    
+    // 清空密码字段（已在 showChangePassword 中处理）
+    
+    showToast('请输入当前密码和新密码');
+}
+
+// ================================================================
+//  退出登录
+// ================================================================
 function logout() {
     currentUser = null;
     localStorage.removeItem('cw_session');
