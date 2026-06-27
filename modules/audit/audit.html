@@ -1,0 +1,25 @@
+<!-- ===== AUDIT ===== -->
+<div id="moduleAudit" class="module-content hidden">
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-blue-600 mb-4">📋 审计日志</h2>
+        <div class="flex gap-3 mb-4 flex-wrap">
+            <select id="auditActionFilter" class="p-2 border rounded-lg text-sm">
+                <option value="all">全部操作</option>
+                <option value="INSERT">新增</option>
+                <option value="UPDATE">修改</option>
+                <option value="DELETE">删除</option>
+            </select>
+            <select id="auditTableFilter" class="p-2 border rounded-lg text-sm">
+                <option value="all">全部表</option>
+                <option value="orders">订单</option>
+                <option value="customers">客户</option>
+                <option value="inventory">库存</option>
+                <option value="users">用户</option>
+            </select>
+            <button onclick="loadAuditLog()" class="btn-primary btn-sm">查询</button>
+            <button onclick="exportAuditLog()" class="bg-green-600 text-white btn-sm">📊 导出</button>
+        </div>
+        <div id="auditLogList" class="max-h-96 overflow-auto space-y-1 text-sm"></div>
+        <div class="mt-3 text-sm text-gray-500">共 <span id="auditCount">0</span> 条记录</div>
+    </div>
+</div>

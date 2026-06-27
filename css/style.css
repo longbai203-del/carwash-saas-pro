@@ -1,0 +1,77 @@
+﻿/* style.css - CarWash Pro 全局样式 */
+* { transition: all 0.2s ease; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f9ff; }
+.toast-custom { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293bcc; backdrop-filter: blur(12px); color: white; padding: 10px 24px; border-radius: 40px; font-size: 14px; z-index: 9999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.modal-glass { background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-radius: 28px; box-shadow: 0 20px 25px -12px rgba(0,0,0,0.08); border: 1px solid rgba(0,145,213,0.12); padding: 24px; }
+.btn-primary { background: linear-gradient(105deg, #0091D5, #38bdf8); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,145,213,0.4); }
+.btn-success { background: linear-gradient(105deg, #16a34a, #4ade80); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+.btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(22,163,74,0.4); }
+.btn-danger { background: linear-gradient(105deg, #dc2626, #f87171); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+.btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(220,38,38,0.4); }
+.btn-warning { background: linear-gradient(105deg, #f59e0b, #fbbf24); color: white; padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; }
+.btn-warning:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(245,158,11,0.4); }
+.btn-outline { background: transparent; color: #0091D5; padding: 10px 20px; border-radius: 14px; border: 2px solid #0091D5; cursor: pointer; }
+.btn-outline:hover { background: #0091D5; color: white; }
+.btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+.sidebar-link { transition: all 0.2s; border-radius: 14px; margin: 4px 12px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; color: #64748b; cursor: pointer; }
+.sidebar-link:hover { background: rgba(0,145,213,0.08); color: #0091D5; }
+.nav-item-active { background: rgba(0,145,213,0.12); border-right: 4px solid #0091D5; color: #0284c7; font-weight: 600; }
+.role-badge { font-size: 10px; padding: 2px 10px; border-radius: 20px; }
+.role-owner { background: #7c3aed; color: white; }
+.role-manager { background: #f59e0b; color: white; }
+.role-cashier { background: #3b82f6; color: white; }
+.role-employee { background: #8b5cf6; color: white; }
+.hidden { display: none !important; }
+.stat-number { font-size: 28px; font-weight: 700; color: #0f172a; }
+.status-badge { padding: 2px 10px; border-radius: 20px; font-size: 11px; }
+.status-pending { background: #fef3c7; color: #d97706; }
+.status-approved { background: #dcfce7; color: #16a34a; }
+.status-rejected { background: #fee2e2; color: #dc2626; }
+.status-confirmed { background: #dbeafe; color: #3b82f6; }
+.status-in_progress { background: #ede9fe; color: #7c3aed; }
+.status-completed { background: #dcfce7; color: #16a34a; }
+.status-cancelled { background: #fee2e2; color: #dc2626; }
+.customer-level { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; }
+.customer-level-diamond { background: #ede9fe; color: #7c3aed; }
+.customer-level-gold { background: #fef3c7; color: #f59e0b; }
+.customer-level-silver { background: #f3f4f6; color: #6b7280; }
+.customer-level-bronze { background: #fef3c7; color: #d97706; }
+.customer-level-normal { background: #f3f4f6; color: #9ca3af; }
+.tab-bar { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { padding: 8px 20px; border-radius: 10px; border: none; cursor: pointer; font-size: 13px; transition: all 0.2s; background: transparent; }
+.tab-btn:hover { background: rgba(255,255,255,0.5); }
+.tab-btn.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 600; }
+.setting-section { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.setting-section h4 { font-weight: 600; color: #1f2937; margin-bottom: 12px; }
+.setting-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.setting-row label { min-width: 100px; font-size: 14px; color: #4b5563; }
+.setting-row input, .setting-row select { flex: 1; min-width: 150px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+.stock-low { background: #fee2e2; border-right: 4px solid #dc2626; }
+.stock-normal { background: #f0fdf4; border-right: 4px solid #22c55e; }
+.kpi-card { transition: all 0.3s; }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15); }
+.sync-status { font-size: 11px; padding: 2px 10px; border-radius: 20px; }
+.sync-online { background: #dcfce7; color: #16a34a; }
+.sync-offline { background: #fee2e2; color: #dc2626; }
+.sync-syncing { background: #fef3c7; color: #d97706; }
+.real-time-badge { background: #22c55e; color: white; font-size: 9px; padding: 2px 8px; border-radius: 20px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.order-card { cursor: pointer; transition: all 0.2s; }
+.order-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -8px rgba(0,0,0,0.1); }
+.commission-paid { background: #dcfce7; color: #16a34a; }
+.commission-pending { background: #fef3c7; color: #d97706; }
+.pending-user { background: #fef3c7; border-right: 4px solid #d97706; }
+.approved-user { background: #f0fdf4; border-right: 4px solid #22c55e; }
+.rejected-user { background: #fee2e2; border-right: 4px solid #dc2626; }
+.status-badge-pending { background: #fef3c7; color: #d97706; }
+.status-badge-approved { background: #dcfce7; color: #16a34a; }
+.status-badge-rejected { background: #fee2e2; color: #dc2626; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #0091D5; box-shadow: 0 0 0 3px rgba(0,145,213,0.1); }
+.stat-card-mini { background: #f8fafc; padding: 12px; border-radius: 12px; text-align: center; }
+.stat-card-mini .num { font-size: 22px; font-weight: 700; }
+.stat-card-mini .lbl { font-size: 11px; color: #6b7280; }

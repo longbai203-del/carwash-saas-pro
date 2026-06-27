@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>CarWash Pro | 洗车店管理系统</title>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== 登录模态框 ==================== -->
+<div id="loginModal" class="modal-glass">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-car-wash text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-blue-600">CarWash Pro</h1>
+            <p class="text-gray-500 mt-1">☁️ 云端版 · 实时同步</p>
+            <span id="syncStatusBadge" class="sync-status sync-syncing mt-2 inline-block">⏳ 连接中...</span>
+        </div>
+
+        <!-- 登录视图 -->
+        <div id="loginView">
+            <div class="mb-3">
+                <label class="text-sm font-medium text-gray-600">用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名" class="w-full p-3 border border-gray-200 rounded-xl mt-1">
+            </div>
+            <div class="mb-3">
+                <label class="text-sm font-medium text-gray-600">密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码" class="w-full p-3 border border-gray-200 rounded-xl mt-1" onkeydown="if(event.key==='Enter') authLogin()">
+            </div>
+            <button onclick="authLogin()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 transition">登录</button>
+            <div class="auth-divider mt-4"><span class="text-xs text-gray-400">还没有账号？</span></div>
+            <button onclick="showRegister()" class="w-full btn-success py-3 rounded-xl font-bold text-lg">📝 注册新账号</button>
+            <div class="mt-3 text-center text-xs">
+                <span class="auth-link" onclick="showForgotPassword()">🔑 忘记密码</span>
+                <span class="text-gray-300 mx-2">|</span>
+                <span class="auth-link" onclick="showChangePassword()">🔒 修改密码</span>
+            </div>
+            <div class="mt-3 text-center text-xs text-gray-400">📌 注册后需管理员审核才能登录</div>
+        </div>
+
+        <!-- 注册视图 -->
+        <div id="registerView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">📝 注册新账号</h3>
+            <p class="text-sm text-gray-500 mb-4">注册后需等待管理员审核，审核通过后即可登录</p>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">用户名 *</label><input id="regUsername" placeholder="设置用户名" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">姓名</label><input id="regName" placeholder="您的姓名" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">密码 *（至少6位）</label><input id="regPassword" type="password" placeholder="设置密码" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认密码 *</label><input id="regPasswordConfirm" type="password" placeholder="再次输入密码" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">申请角色</label>
+                    <select id="regRole" class="w-full p-3 border rounded-xl mt-1">
+                        <option value="employee">员工</option>
+                        <option value="cashier">收银员</option>
+                        <option value="manager">店长</option>
+                    </select>
+                    <p class="text-xs text-amber-500 mt-1">⚠️ 老板账号需管理员在后台创建</p>
+                </div>
+                <button onclick="registerUser()" class="w-full btn-success py-3 rounded-xl font-bold text-lg">提交注册申请</button>
+                <button onclick="showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+
+        <!-- 忘记密码视图 -->
+        <div id="forgotPasswordView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🔑 重置密码</h3>
+            <p class="text-sm text-gray-500 mb-4">输入用户名和新密码重置密码（需账号已审核通过）</p>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">用户名</label><input id="forgotUsername" placeholder="输入用户名" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">新密码</label><input id="forgotNewPassword" type="password" placeholder="设置新密码（至少6位）" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认新密码</label><input id="forgotConfirmPassword" type="password" placeholder="再次输入新密码" class="w-full p-3 border rounded-xl mt-1"></div>
+                <button onclick="resetPassword()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">重置密码</button>
+                <button onclick="showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+
+        <!-- 修改密码视图 -->
+        <div id="changePasswordView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🔒 修改密码</h3>
+            <p class="text-sm text-gray-500 mb-4">输入当前密码和新密码来修改密码（需要先登录）</p>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">当前用户名</label><input id="changeUsername" placeholder="输入用户名" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">当前密码</label><input id="changeOldPassword" type="password" placeholder="输入当前密码" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">新密码</label><input id="changeNewPassword" type="password" placeholder="设置新密码（至少6位）" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认新密码</label><input id="changeConfirmPassword" type="password" placeholder="再次输入新密码" class="w-full p-3 border rounded-xl mt-1"></div>
+                <button onclick="changePassword()" class="w-full bg-amber-500 text-white py-3 rounded-xl font-bold hover:bg-amber-600 transition">确认修改密码</button>
+                <button onclick="showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 主应用容器 ==================== -->
+<div id="appContainer" class="hidden flex h-screen overflow-hidden">
+
+    <!-- 侧边栏 -->
+    <aside class="w-64 bg-white shadow-xl z-20 flex flex-col border-r border-gray-100">
+        <div class="p-5 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                <i class="fas fa-car-wash text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-blue-600">CarWash Pro</h1>
+                <p class="text-xs text-gray-400" id="userRoleDisplay">☁️ 实时同步</p>
+            </div>
+        </div>
+
+        <!-- 门店选择器 -->
+        <div class="px-4 py-3 border-b border-gray-100">
+            <label class="text-xs text-gray-400 block mb-1">🏪 当前门店</label>
+            <select id="branchSelector" class="w-full p-2 border rounded-lg text-sm bg-gray-50" onchange="switchBranch()">
+                <option value="all">全部门店</option>
+            </select>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1" id="mainNav">
+            <a href="#" data-nav="dashboard" class="sidebar-link nav-item-active"><i class="fas fa-chart-line w-5"></i><span>仪表板</span></a>
+            <a href="#" data-nav="cashier" class="sidebar-link" id="navCashier"><i class="fas fa-cash-register w-5"></i><span>POS / 收银</span></a>
+            <a href="#" data-nav="orders" class="sidebar-link" id="navOrders"><i class="fas fa-clipboard-list w-5"></i><span>订单管理</span></a>
+            <a href="#" data-nav="inventory" class="sidebar-link" id="navInventory"><i class="fas fa-boxes w-5"></i><span>库存</span></a>
+            <a href="#" data-nav="members" class="sidebar-link" id="navCustomers"><i class="fas fa-users w-5"></i><span>客户</span></a>
+            <a href="#" data-nav="reports" class="sidebar-link" id="navReports"><i class="fas fa-chart-bar w-5"></i><span>财务</span></a>
+            <a href="#" data-nav="attendance" class="sidebar-link" id="navAttendance"><i class="fas fa-clock w-5"></i><span>考勤</span></a>
+            <a href="#" data-nav="employees" class="sidebar-link" id="navEmployees"><i class="fas fa-user-tie w-5"></i><span>员工审核</span></a>
+            <a href="#" data-nav="audit" class="sidebar-link" id="navAudit"><i class="fas fa-history w-5"></i><span>审计日志</span></a>
+            <a href="#" data-nav="settings" class="sidebar-link" id="navSettings"><i class="fas fa-cog w-5"></i><span>设置</span></a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-cloud text-blue-500 text-xl"></i>
+                    <div>
+                        <p class="text-xs text-gray-400">同步状态</p>
+                        <p class="text-sm font-semibold" id="syncStatusText">🟢 在线</p>
+                    </div>
+                </div>
+                <span class="real-time-badge"><i class="fas fa-bolt"></i> 实时</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-400">
+                <span id="currentUserSpan">未登录</span>
+                <span class="mx-1">·</span>
+                <span id="currentRoleSpan" class="text-gray-500"></span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+        <header class="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
+            <h2 id="currentPageTitle" class="text-xl font-bold text-gray-800">仪表板</h2>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500 hidden md:inline" id="headerUserInfo">👤 <span id="headerUsername">未登录</span></span>
+                <button onclick="showChangePasswordFromMenu()" class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100">🔒 修改密码</button>
+                <button onclick="logout()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">退出</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 space-y-6" id="mainContent">
+            <!-- 模块容器 -->
+            <div id="moduleContainer"></div>
+        </main>
+    </div>
+</div>
+
+<!-- ==================== 模态框 ==================== -->
+<div id="orderDetailModal" class="modal-glass hidden"><div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 mx-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-blue-600" id="orderDetailTitle">订单详情</h3><button onclick="closeModal('orderDetailModal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button></div><div id="orderDetailContent"></div></div></div>
+<div id="stockInModal" class="modal-glass hidden"><div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 mx-4"><h3 class="text-xl font-bold text-blue-600 mb-4">📥 入库</h3><div class="form-group"><label>产品</label><select id="stockInProduct" class="w-full p-2 border rounded"></select></div><div class="form-group"><label>数量</label><input id="stockInQty" type="number" min="1" class="w-full p-2 border rounded"></div><div class="form-group"><label>单价 (SAR)</label><input id="stockInPrice" type="number" step="0.01" class="w-full p-2 border rounded"></div><div class="form-group"><label>供应商</label><input id="stockInSupplier" class="w-full p-2 border rounded"></div><div class="flex gap-3 mt-4"><button onclick="submitStockIn()" class="btn-success flex-1 py-2 rounded-lg">确认入库</button><button onclick="closeModal('stockInModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div></div></div>
+<div id="stockOutModal" class="modal-glass hidden"><div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 mx-4"><h3 class="text-xl font-bold text-amber-600 mb-4">📤 出库</h3><div class="form-group"><label>产品</label><select id="stockOutProduct" class="w-full p-2 border rounded"></select></div><div class="form-group"><label>数量</label><input id="stockOutQty" type="number" min="1" class="w-full p-2 border rounded"></div><div class="form-group"><label>出库原因</label><select id="stockOutReason" class="w-full p-2 border rounded"><option value="日常消耗">日常消耗</option><option value="客户使用">客户使用</option><option value="过期报废">过期报废</option><option value="其他">其他</option></select></div><div class="flex gap-3 mt-4"><button onclick="submitStockOut()" class="btn-warning flex-1 py-2 rounded-lg">确认出库</button><button onclick="closeModal('stockOutModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div></div></div>
+<div id="addProductModal" class="modal-glass hidden"><div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 mx-4"><h3 class="text-xl font-bold text-blue-600 mb-4">➕ 新产品</h3><div class="form-group"><label>产品名称</label><input id="newProductName" class="w-full p-2 border rounded"></div><div class="form-group"><label>分类</label><select id="newProductCategory" class="w-full p-2 border rounded"><option value="耗材">耗材</option><option value="工具">工具</option><option value="其他">其他</option></select></div><div class="form-group"><label>单位</label><input id="newProductUnit" class="w-full p-2 border rounded" value="瓶"></div><div class="form-group"><label>初始数量</label><input id="newProductQty" type="number" min="0" class="w-full p-2 border rounded"></div><div class="form-group"><label>成本价 (SAR)</label><input id="newProductCost" type="number" step="0.01" class="w-full p-2 border rounded"></div><div class="form-group"><label>最低库存预警</label><input id="newProductMinQty" type="number" min="1" class="w-full p-2 border rounded" value="5"></div><div class="flex gap-3 mt-4"><button onclick="submitNewProduct()" class="btn-success flex-1 py-2 rounded-lg">添加产品</button><button onclick="closeModal('addProductModal')" class="btn-outline flex-1 py-2 rounded-lg">取消</button></div></div></div>
+
+<!-- ================================================================ -->
+<!--  JS 加载顺序 -->
+<!-- ================================================================ -->
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/cashier.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/customers.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/attendance.js"></script>
+<script src="js/employees.js"></script>
+<script src="js/audit.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/loader.js"></script>
+
+<script>
+// ================================================================
+//  启动
+// ================================================================
+(async function init() {
+    try {
+        const savedConfig = JSON.parse(localStorage.getItem('cw_config'));
+        if (savedConfig) config = { ...config, ...savedConfig };
+    } catch(e) {}
+
+    const session = localStorage.getItem('cw_session');
+    if (session) {
+        try {
+            const s = JSON.parse(session);
+            const { data: users } = await supabaseClient.from('users').select('*');
+            if (users) allUsers = users;
+            const user = users?.find(u => u.id === s.id);
+            if (user && user.status === 'approved') {
+                currentUser = {
+                    id: user.id, username: user.username, password_hash: user.password_hash,
+                    role: user.role || 'employee', name: user.name || user.username,
+                    status: user.status, registered_at: user.registered_at,
+                    approved_by: user.approved_by, approved_at: user.approved_at,
+                    branch_id: user.branch_id, tenant_id: user.tenant_id, store_id: user.store_id,
+                    role_id: user.role_id, employee_code: user.employee_code, phone: user.phone,
+                    avatar_url: user.avatar_url, last_login_at: user.last_login_at,
+                    updated_at: user.updated_at
+                };
+                await loadAllData();
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('appContainer').classList.remove('hidden');
+                updateUIAfterLogin();
+                console.log('✅ CarWash Pro 已启动，当前用户:', currentUser.username, '角色:', currentUser.role);
+
+                setTimeout(() => {
+                    if (window.ModuleLoader) ModuleLoader.preloadAll();
+                }, 3000);
+                return;
+            } else if (user && user.status === 'pending') {
+                showToast('⏳ 账号正在审核中');
+                localStorage.removeItem('cw_session');
+            } else if (user && user.status === 'rejected') {
+                showToast('❌ 账号已被拒绝');
+                localStorage.removeItem('cw_session');
+            }
+        } catch(e) {
+            console.error('Session 恢复失败:', e);
+        }
+    }
+
+    await loadAllData();
+    document.getElementById('loginModal').style.display = 'flex';
+    console.log('✅ CarWash Pro 已加载，请登录或注册');
+})();
+
+// ================================================================
+//  导航点击绑定
+// ================================================================
+document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', function(e) {
+        e.preventDefault();
+        const tab = this.dataset.nav;
+        if (window.ModuleLoader) {
+            ModuleLoader.switchTo(tab);
+        } else {
+            console.error('❌ ModuleLoader 未加载');
+            switchTab(tab);
+        }
+    });
+});
+
+window.switchTab = function(tab) {
+    if (window.ModuleLoader) {
+        ModuleLoader.switchTo(tab);
+    }
+};
+
+window.refreshAll = function() {
+    if (window.ModuleLoader) {
+        ModuleLoader.refresh();
+    }
+};
+
+console.log('✅ index.html 启动脚本已加载');
+</script>
+</body>
+</html>

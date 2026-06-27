@@ -1,0 +1,16 @@
+<!-- ===== INVENTORY ===== -->
+<div id="moduleInventory" class="module-content hidden">
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-blue-600">📦 库存管理</h2>
+        <div class="flex gap-2 mb-4 flex-wrap">
+            <button onclick="openStockInModal()" class="btn-success btn-sm"><i class="fas fa-arrow-down"></i> 入库</button>
+            <button onclick="openStockOutModal()" class="btn-warning btn-sm"><i class="fas fa-arrow-up"></i> 出库</button>
+            <button onclick="openAddProductModal()" class="btn-primary btn-sm"><i class="fas fa-plus"></i> 新产品</button>
+        </div>
+        <div id="inventoryList" class="space-y-2 max-h-96 overflow-auto"></div>
+    </div>
+    <div class="glass-card p-6 mt-4">
+        <h3 class="font-bold text-gray-800 mb-3">📋 出入库记录</h3>
+        <div id="stockLogList" class="space-y-1 max-h-48 overflow-auto text-sm"></div>
+    </div>
+</div>

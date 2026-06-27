@@ -1,0 +1,12 @@
+<!-- ===== ATTENDANCE ===== -->
+<div id="moduleAttendance" class="module-content hidden">
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-blue-600">⏰ 考勤管理</h2>
+        <select id="attendanceStaff" class="w-full p-3 border rounded-xl mt-3"></select>
+        <div class="flex gap-3 mt-3">
+            <button onclick="clockIn()" class="bg-emerald-600 text-white px-5 py-2 rounded-xl">上班打卡</button>
+            <button onclick="clockOut()" class="bg-amber-500 text-white px-5 py-2 rounded-xl">下班打卡</button>
+        </div>
+        <div id="attendanceList" class="mt-5 space-y-1 max-h-72 overflow-auto"></div>
+    </div>
+</div>

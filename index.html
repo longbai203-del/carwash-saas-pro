@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>CarWash Pro | 洗车店管理系统</title>
+    
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== 登录模态框 ===== -->
+<div id="loginModal" class="modal-glass">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-car-wash text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-blue-600">CarWash Pro</h1>
+            <p class="text-gray-500 mt-1">☁️ 云端版 · 实时同步</p>
+            <span id="syncStatusBadge" class="sync-status sync-syncing mt-2 inline-block">⏳ 连接中...</span>
+        </div>
+
+        <div id="loginView">
+            <div class="mb-3"><label class="text-sm font-medium text-gray-600">用户名</label><input type="text" id="loginUsername" placeholder="请输入用户名" class="w-full p-3 border border-gray-200 rounded-xl mt-1"></div>
+            <div class="mb-3"><label class="text-sm font-medium text-gray-600">密码</label><input type="password" id="loginPassword" placeholder="请输入密码" class="w-full p-3 border border-gray-200 rounded-xl mt-1" onkeydown="if(event.key==='Enter') AppAuth.login()"></div>
+            <button onclick="AppAuth.login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 transition">登录</button>
+            <div class="auth-divider mt-4"><span class="text-xs text-gray-400">还没有账号？</span></div>
+            <button onclick="AppAuth.showRegister()" class="w-full btn-success py-3 rounded-xl font-bold text-lg">📝 注册新账号</button>
+            <div class="mt-3 text-center text-xs">
+                <span class="auth-link" onclick="AppAuth.showForgotPassword()">🔑 忘记密码</span>
+                <span class="text-gray-300 mx-2">|</span>
+                <span class="auth-link" onclick="AppAuth.showChangePassword()">🔒 修改密码</span>
+            </div>
+            <div class="mt-3 text-center text-xs text-gray-400">📌 注册后需管理员审核才能登录</div>
+        </div>
+
+        <div id="registerView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">📝 注册新账号</h3>
+            <p class="text-sm text-gray-500 mb-4">注册后需等待管理员审核</p>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">用户名 *</label><input id="regUsername" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">姓名</label><input id="regName" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">密码 *</label><input id="regPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认密码 *</label><input id="regPasswordConfirm" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">申请角色</label>
+                    <select id="regRole" class="w-full p-3 border rounded-xl mt-1">
+                        <option value="employee">员工</option>
+                        <option value="cashier">收银员</option>
+                        <option value="manager">店长</option>
+                    </select>
+                    <p class="text-xs text-amber-500 mt-1">⚠️ 老板账号需管理员创建</p>
+                </div>
+                <button onclick="AppAuth.register()" class="w-full btn-success py-3 rounded-xl font-bold text-lg">提交注册申请</button>
+                <button onclick="AppAuth.showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+
+        <div id="forgotPasswordView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🔑 重置密码</h3>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">用户名</label><input id="forgotUsername" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">新密码</label><input id="forgotNewPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认新密码</label><input id="forgotConfirmPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <button onclick="AppAuth.resetPassword()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">重置密码</button>
+                <button onclick="AppAuth.showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+
+        <div id="changePasswordView" class="hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🔒 修改密码</h3>
+            <div class="space-y-3">
+                <div><label class="text-sm font-medium text-gray-600">用户名</label><input id="changeUsername" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">当前密码</label><input id="changeOldPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">新密码</label><input id="changeNewPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <div><label class="text-sm font-medium text-gray-600">确认新密码</label><input id="changeConfirmPassword" type="password" class="w-full p-3 border rounded-xl mt-1"></div>
+                <button onclick="AppAuth.changePassword()" class="w-full bg-amber-500 text-white py-3 rounded-xl font-bold hover:bg-amber-600 transition">确认修改</button>
+                <button onclick="AppAuth.showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 主应用 ===== -->
+<div id="appContainer" class="hidden flex h-screen overflow-hidden">
+    <aside class="w-64 bg-white shadow-xl z-20 flex flex-col border-r border-gray-100">
+        <div class="p-5 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                <i class="fas fa-car-wash text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-blue-600">CarWash Pro</h1>
+                <p class="text-xs text-gray-400" id="userRoleDisplay">☁️ 实时同步</p>
+            </div>
+        </div>
+
+        <div class="px-4 py-3 border-b border-gray-100">
+            <label class="text-xs text-gray-400 block mb-1">🏪 当前门店</label>
+            <select id="branchSelector" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+                <option value="all">全部门店</option>
+            </select>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1" id="mainNav">
+            <a href="#" data-module="dashboard" class="sidebar-link nav-item-active"><i class="fas fa-chart-line w-5"></i><span>仪表板</span></a>
+            <a href="#" data-module="cashier" class="sidebar-link" id="navCashier"><i class="fas fa-cash-register w-5"></i><span>POS / 收银</span></a>
+            <a href="#" data-module="orders" class="sidebar-link" id="navOrders"><i class="fas fa-clipboard-list w-5"></i><span>订单管理</span></a>
+            <a href="#" data-module="inventory" class="sidebar-link" id="navInventory"><i class="fas fa-boxes w-5"></i><span>库存</span></a>
+            <a href="#" data-module="customers" class="sidebar-link" id="navCustomers"><i class="fas fa-users w-5"></i><span>客户</span></a>
+            <a href="#" data-module="reports" class="sidebar-link" id="navReports"><i class="fas fa-chart-bar w-5"></i><span>财务</span></a>
+            <a href="#" data-module="attendance" class="sidebar-link" id="navAttendance"><i class="fas fa-clock w-5"></i><span>考勤</span></a>
+            <a href="#" data-module="employees" class="sidebar-link" id="navEmployees"><i class="fas fa-user-tie w-5"></i><span>员工审核</span></a>
+            <a href="#" data-module="audit" class="sidebar-link" id="navAudit"><i class="fas fa-history w-5"></i><span>审计日志</span></a>
+            <a href="#" data-module="settings" class="sidebar-link" id="navSettings"><i class="fas fa-cog w-5"></i><span>设置</span></a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-cloud text-blue-500 text-xl"></i>
+                    <div>
+                        <p class="text-xs text-gray-400">同步状态</p>
+                        <p class="text-sm font-semibold" id="syncStatusText">🟢 在线</p>
+                    </div>
+                </div>
+                <span class="real-time-badge"><i class="fas fa-bolt"></i> 实时</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-400">
+                <span id="currentUserSpan">未登录</span>
+                <span class="mx-1">·</span>
+                <span id="currentRoleSpan" class="text-gray-500"></span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+        <header class="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
+            <h2 id="currentPageTitle" class="text-xl font-bold text-gray-800">仪表板</h2>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500 hidden md:inline" id="headerUserInfo">👤 <span id="headerUsername">未登录</span></span>
+                <button onclick="AppAuth.showChangePassword(); document.getElementById('loginModal').style.display='flex'" class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100">🔒 修改密码</button>
+                <button onclick="AppAuth.logout()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">退出</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6" id="moduleContainer">
+            <div id="moduleContent" class="module-container">
+                <div class="text-center text-gray-400 py-20">请选择功能模块</div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ===== 脚本加载 ===== -->
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+const supabase = supabase.createClient(
+    AppConfig.supabase.url,
+    AppConfig.supabase.anonKey
+);
+window.supabase = supabase;
+
+(async function init() {
+    const session = localStorage.getItem('cw_session');
+    if (session) {
+        try {
+            const s = JSON.parse(session);
+            const users = await AppApi.query('users', { filter: { id: s.id } });
+            if (users && users.length > 0 && users[0].status === 'approved') {
+                AppStore.set('currentUser', users[0]);
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('appContainer').classList.remove('hidden');
+                await App.init();
+                AppLoader.load('dashboard');
+                return;
+            }
+        } catch(e) {
+            console.error('[Init] 自动登录失败:', e);
+        }
+    }
+    
+    document.getElementById('loginModal').style.display = 'flex';
+    document.getElementById('syncStatusBadge').textContent = '✅ 已连接';
+    document.getElementById('syncStatusBadge').className = 'sync-status sync-online';
+    console.log('[CarWash Pro] 等待登录...');
+})();
+</script>
+
+</body>
+</html>
