@@ -17,7 +17,6 @@
 <!-- ==================== 登录模态框 ==================== -->
 <div id="loginModal" class="modal-glass">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4 max-h-[90vh] overflow-y-auto">
-
         <div class="text-center mb-6">
             <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <i class="fas fa-car-wash text-4xl text-white"></i>
@@ -136,7 +135,6 @@
                 <button onclick="showLogin()" class="w-full text-gray-500 mt-2 text-sm hover:text-gray-700">← 返回登录</button>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -207,7 +205,6 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 space-y-6" id="mainContent">
-            <!-- 各模块内容由 JS 动态加载 -->
             <div id="moduleContainer"></div>
         </main>
     </div>
@@ -234,6 +231,11 @@
 <script src="js/settings.js"></script>
 <script>
 // ================================================================
+//  全局变量存储 DOM 元素引用
+// ================================================================
+let domElements = {};
+
+// ================================================================
 //  模块加载器
 // ================================================================
 const moduleCache = {};
@@ -243,13 +245,11 @@ async function loadModule(moduleName) {
     if (!container) return;
     
     try {
-        // 检查是否已加载
         if (moduleCache[moduleName]) {
             container.innerHTML = moduleCache[moduleName];
             return;
         }
         
-        // 从 modules 文件夹加载 HTML
         const response = await fetch(`modules/${moduleName}.html`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const html = await response.text();
@@ -262,13 +262,43 @@ async function loadModule(moduleName) {
 }
 
 // ================================================================
+//  安全获取 DOM 元素（带延迟重试）
+// ================================================================
+function safeGetElement(id, retries = 3, delay = 200) {
+    return new Promise((resolve, reject) => {
+        let attempt = 0;
+        const check = () => {
+            const el = document.getElementById(id);
+            if (el) {
+                resolve(el);
+            } else if (attempt < retries) {
+                attempt++;
+                setTimeout(check, delay);
+            } else {
+                reject(new Error(`元素 #${id} 未找到`));
+            }
+        };
+        check();
+    });
+}
+
+// ================================================================
+//  安全执行函数（带元素检查）
+// ================================================================
+async function safeExecute(tab, fn) {
+    try {
+        // 等待 DOM 元素就绪
+        await new Promise(resolve => setTimeout(resolve, 350));
+        fn();
+    } catch (error) {
+        console.warn(`模块 ${tab} 初始化警告:`, error.message);
+    }
+}
+
+// ================================================================
 //  启动
 // ================================================================
 (async function init() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('reportDatePicker').value = today;
-    document.getElementById('orderDateFilter').value = today;
-
     // 加载配置
     try {
         const savedConfig = JSON.parse(localStorage.getItem('cw_config'));
@@ -330,8 +360,8 @@ async function loadModule(moduleName) {
 // ================================================================
 //  重写 switchTab 以支持动态加载
 // ================================================================
-const originalSwitchTab = switchTab;
-switchTab = async function(tab) {
+const originalSwitchTab = window.switchTab || function(){};
+window.switchTab = async function(tab) {
     // 权限检查
     if (currentUser && !currentUser.role) {
         const user = allUsers.find(u => u.id === currentUser.id);
@@ -384,47 +414,79 @@ switchTab = async function(tab) {
     await loadModule(tab);
 
     // 延迟执行初始化函数，确保 DOM 已渲染
-    setTimeout(() => {
-        if (tab === 'dashboard') refreshDashboard();
-        if (tab === 'cashier') refreshPOS();
-        if (tab === 'orders') loadOrders();
-        if (tab === 'inventory') refreshInventory();
-        if (tab === 'members') refreshCustomers();
-        if (tab === 'attendance') refreshAttendance();
-        if (tab === 'employees') loadUsersForReview();
-        if (tab === 'reports') { loadDailyReport(); loadCommission(); loadCustomerRank(); }
-        if (tab === 'audit') loadAuditLog();
-        if (tab === 'settings') { loadSettings(); loadBackupConfig(); refreshBranches(); }
-    }, 300);  // 从 100 改为 300，确保 DOM 完全渲染
+    await new Promise(resolve => setTimeout(resolve, 350));
+    
+    // 安全执行各模块初始化
+    try {
+        if (tab === 'dashboard' && typeof refreshDashboard === 'function') refreshDashboard();
+        if (tab === 'cashier' && typeof refreshPOS === 'function') refreshPOS();
+        if (tab === 'orders' && typeof loadOrders === 'function') loadOrders();
+        if (tab === 'inventory' && typeof refreshInventory === 'function') refreshInventory();
+        if (tab === 'members' && typeof refreshCustomers === 'function') refreshCustomers();
+        if (tab === 'attendance' && typeof refreshAttendance === 'function') refreshAttendance();
+        if (tab === 'employees' && typeof loadUsersForReview === 'function') loadUsersForReview();
+        if (tab === 'reports') {
+            if (typeof loadDailyReport === 'function') loadDailyReport();
+            if (typeof loadCommission === 'function') loadCommission();
+            if (typeof loadCustomerRank === 'function') loadCustomerRank();
+        }
+        if (tab === 'audit' && typeof loadAuditLog === 'function') loadAuditLog();
+        if (tab === 'settings') {
+            if (typeof loadSettings === 'function') loadSettings();
+            if (typeof loadBackupConfig === 'function') loadBackupConfig();
+            if (typeof refreshBranches === 'function') refreshBranches();
+        }
+    } catch (error) {
+        console.warn('模块初始化警告:', error.message);
+    }
 };
 
 // 重新绑定导航点击事件
 document.querySelectorAll('[data-nav]').forEach(el => {
-    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.nav); });
+    el.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        window.switchTab(el.dataset.nav); 
+    });
 });
 
 // ================================================================
 //  重写 refreshAll 以支持动态加载
 // ================================================================
-const originalRefreshAll = refreshAll;
-refreshAll = function() {
-    // 只刷新当前显示的模块
-    const visibleModule = document.querySelector('#moduleContainer .module-content:not(.hidden)');
-    if (!visibleModule) return;
-    
-    // 根据当前可见模块刷新对应数据
+const originalRefreshAll = window.refreshAll || function(){};
+window.refreshAll = function() {
     const currentTab = document.querySelector('[data-nav].nav-item-active')?.dataset?.nav || 'dashboard';
-    if (currentTab === 'dashboard') refreshDashboard();
-    if (currentTab === 'cashier') refreshPOS();
-    if (currentTab === 'orders') loadOrders();
-    if (currentTab === 'inventory') refreshInventory();
-    if (currentTab === 'members') refreshCustomers();
-    if (currentTab === 'attendance') refreshAttendance();
-    if (currentTab === 'employees') loadUsersForReview();
-    if (currentTab === 'reports') { loadDailyReport(); loadCommission(); loadCustomerRank(); }
-    if (currentTab === 'audit') loadAuditLog();
-    if (currentTab === 'settings') { loadSettings(); loadBackupConfig(); refreshBranches(); }
+    try {
+        if (currentTab === 'dashboard' && typeof refreshDashboard === 'function') refreshDashboard();
+        if (currentTab === 'cashier' && typeof refreshPOS === 'function') refreshPOS();
+        if (currentTab === 'orders' && typeof loadOrders === 'function') loadOrders();
+        if (currentTab === 'inventory' && typeof refreshInventory === 'function') refreshInventory();
+        if (currentTab === 'members' && typeof refreshCustomers === 'function') refreshCustomers();
+        if (currentTab === 'attendance' && typeof refreshAttendance === 'function') refreshAttendance();
+        if (currentTab === 'employees' && typeof loadUsersForReview === 'function') loadUsersForReview();
+        if (currentTab === 'reports') {
+            if (typeof loadDailyReport === 'function') loadDailyReport();
+            if (typeof loadCommission === 'function') loadCommission();
+            if (typeof loadCustomerRank === 'function') loadCustomerRank();
+        }
+        if (currentTab === 'audit' && typeof loadAuditLog === 'function') loadAuditLog();
+        if (currentTab === 'settings') {
+            if (typeof loadSettings === 'function') loadSettings();
+            if (typeof loadBackupConfig === 'function') loadBackupConfig();
+            if (typeof refreshBranches === 'function') refreshBranches();
+        }
+    } catch (error) {
+        console.warn('刷新数据警告:', error.message);
+    }
 };
+
+// ================================================================
+//  全局错误处理
+// ================================================================
+window.addEventListener('error', function(e) {
+    console.warn('全局捕获错误:', e.message);
+});
+
+console.log('✅ CarWash Pro 模块加载器已初始化');
 </script>
 </body>
 </html>
