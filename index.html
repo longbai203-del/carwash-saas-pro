@@ -234,6 +234,34 @@
 <script src="js/settings.js"></script>
 <script>
 // ================================================================
+//  模块加载器
+// ================================================================
+const moduleCache = {};
+
+async function loadModule(moduleName) {
+    const container = document.getElementById('moduleContainer');
+    if (!container) return;
+    
+    try {
+        // 检查是否已加载
+        if (moduleCache[moduleName]) {
+            container.innerHTML = moduleCache[moduleName];
+            return;
+        }
+        
+        // 从 modules 文件夹加载 HTML
+        const response = await fetch(`modules/${moduleName}.html`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const html = await response.text();
+        moduleCache[moduleName] = html;
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('加载模块失败:', error);
+        container.innerHTML = `<div class="text-center text-red-500 p-8">❌ 加载模块失败: ${error.message}</div>`;
+    }
+}
+
+// ================================================================
 //  启动
 // ================================================================
 (async function init() {
@@ -298,6 +326,105 @@
     document.getElementById('loginModal').style.display = 'flex';
     console.log('✅ CarWash Pro 已加载，请登录或注册');
 })();
+
+// ================================================================
+//  重写 switchTab 以支持动态加载
+// ================================================================
+const originalSwitchTab = switchTab;
+switchTab = async function(tab) {
+    // 权限检查
+    if (currentUser && !currentUser.role) {
+        const user = allUsers.find(u => u.id === currentUser.id);
+        if (user) {
+            currentUser = {
+                id: user.id,
+                username: user.username,
+                password_hash: user.password_hash,
+                role: user.role || 'employee',
+                name: user.name || user.username,
+                status: user.status,
+                registered_at: user.registered_at,
+                approved_by: user.approved_by,
+                approved_at: user.approved_at,
+                branch_id: user.branch_id,
+                tenant_id: user.tenant_id,
+                store_id: user.store_id,
+                role_id: user.role_id,
+                employee_code: user.employee_code,
+                phone: user.phone,
+                avatar_url: user.avatar_url,
+                last_login_at: user.last_login_at,
+                updated_at: user.updated_at
+            };
+            localStorage.setItem('cw_session', JSON.stringify({ 
+                id: user.id, 
+                username: user.username,
+                role: user.role || 'employee'
+            }));
+        }
+    }
+    
+    const permissions = ROLE_PERMISSIONS[currentUser?.role] || ROLE_PERMISSIONS.employee;
+    if (!permissions[tab]) { 
+        showToast('⚠️ 您没有权限访问此页面'); 
+        return; 
+    }
+
+    // 更新导航高亮
+    document.querySelectorAll('[data-nav]').forEach(el => {
+        el.classList.remove('nav-item-active');
+        if (el.dataset.nav === tab) el.classList.add('nav-item-active');
+    });
+
+    // 更新页面标题
+    const titles = { dashboard: '仪表板', cashier: '收银台', orders: '订单管理', inventory: '库存管理', members: '客户管理', attendance: '考勤管理', reports: '财务管理', employees: '员工审核', audit: '审计日志', settings: '系统设置' };
+    document.getElementById('currentPageTitle').textContent = titles[tab] || tab;
+
+    // 加载模块内容
+    await loadModule(tab);
+
+    // 延迟执行初始化函数，确保 DOM 已渲染
+    setTimeout(() => {
+        if (tab === 'dashboard') refreshDashboard();
+        if (tab === 'cashier') refreshPOS();
+        if (tab === 'orders') loadOrders();
+        if (tab === 'inventory') refreshInventory();
+        if (tab === 'members') refreshCustomers();
+        if (tab === 'attendance') refreshAttendance();
+        if (tab === 'employees') loadUsersForReview();
+        if (tab === 'reports') { loadDailyReport(); loadCommission(); loadCustomerRank(); }
+        if (tab === 'audit') loadAuditLog();
+        if (tab === 'settings') { loadSettings(); loadBackupConfig(); refreshBranches(); }
+    }, 100);
+};
+
+// 重新绑定导航点击事件
+document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.nav); });
+});
+
+// ================================================================
+//  重写 refreshAll 以支持动态加载
+// ================================================================
+const originalRefreshAll = refreshAll;
+refreshAll = function() {
+    // 只刷新当前显示的模块
+    const visibleModule = document.querySelector('#moduleContainer .module-content:not(.hidden)');
+    if (!visibleModule) return;
+    
+    // 根据当前可见模块刷新对应数据
+    const currentTab = document.querySelector('[data-nav].nav-item-active')?.dataset?.nav || 'dashboard';
+    if (currentTab === 'dashboard') refreshDashboard();
+    if (currentTab === 'cashier') refreshPOS();
+    if (currentTab === 'orders') loadOrders();
+    if (currentTab === 'inventory') refreshInventory();
+    if (currentTab === 'members') refreshCustomers();
+    if (currentTab === 'attendance') refreshAttendance();
+    if (currentTab === 'employees') loadUsersForReview();
+    if (currentTab === 'reports') { loadDailyReport(); loadCommission(); loadCustomerRank(); }
+    if (currentTab === 'audit') loadAuditLog();
+    if (currentTab === 'settings') { loadSettings(); loadBackupConfig(); refreshBranches(); }
+};
 </script>
 </body>
 </html>
