@@ -1,16 +1,39 @@
-<!-- ===== INVENTORY ===== -->
-<div id="moduleInventory" class="module-content hidden">
+<div id="inventoryContainer" class="space-y-6">
     <div class="glass-card p-6">
-        <h2 class="text-xl font-bold text-blue-600">📦 库存管理</h2>
-        <div class="flex gap-2 mb-4 flex-wrap">
-            <button onclick="openStockInModal()" class="btn-success btn-sm"><i class="fas fa-arrow-down"></i> 入库</button>
-            <button onclick="openStockOutModal()" class="btn-warning btn-sm"><i class="fas fa-arrow-up"></i> 出库</button>
-            <button onclick="openAddProductModal()" class="btn-primary btn-sm"><i class="fas fa-plus"></i> 新产品</button>
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <h2 class="text-xl font-bold text-blue-600">📦 库存管理</h2>
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="alert('入库功能开发中')" class="btn-success btn-sm"><i class="fas fa-arrow-down"></i> 入库</button>
+                <button onclick="alert('出库功能开发中')" class="btn-warning btn-sm"><i class="fas fa-arrow-up"></i> 出库</button>
+                <button onclick="alert('添加产品功能开发中')" class="btn-primary btn-sm"><i class="fas fa-plus"></i> 新产品</button>
+            </div>
         </div>
+
+        <!-- 搜索框 -->
+        <div class="mb-4">
+            <input id="invSearch" placeholder="🔍 搜索产品名称..." class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200">
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-4 gap-3 mb-4">
+            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                <div class="text-lg font-bold text-blue-600" id="invTotalItems">0</div>
+                <div class="text-xs text-gray-500">总品类</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                <div class="text-lg font-bold text-green-600" id="invTotalQty">0</div>
+                <div class="text-xs text-gray-500">总数量</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                <div class="text-lg font-bold text-red-600" id="invLowItems">0</div>
+                <div class="text-xs text-gray-500">低库存</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                <div class="text-lg font-bold text-purple-600" id="invTotalValue">0 SAR</div>
+                <div class="text-xs text-gray-500">总价值</div>
+            </div>
+        </div>
+
         <div id="inventoryList" class="space-y-2 max-h-96 overflow-auto"></div>
-    </div>
-    <div class="glass-card p-6 mt-4">
-        <h3 class="font-bold text-gray-800 mb-3">📋 出入库记录</h3>
-        <div id="stockLogList" class="space-y-1 max-h-48 overflow-auto text-sm"></div>
     </div>
 </div>
