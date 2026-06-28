@@ -9,6 +9,7 @@
         _loaded: {},
         _active: null,
         _loading: false,
+        _pending: null,
 
         _modules: {
             dashboard: { obj: 'DashboardModule', label: '仪表板' },
@@ -25,9 +26,9 @@
 
         load: async function(moduleName) {
             if (this._loading) {
-                console.log('[Loader] 正在加载中，等待完成...');
-                await this._waitForLoadComplete();
-                return this.load(moduleName);
+                this._pending = moduleName;
+                console.log('[Loader] 正在加载中，已加入队列: ' + moduleName);
+                return;
             }
 
             var container = document.getElementById('moduleContent');
@@ -63,9 +64,7 @@
                 if (!module) throw new Error('模块未配置: ' + moduleName);
 
                 var htmlPath = 'modules/' + moduleName + '/' + moduleName + '.html';
-                var htmlRes = await fetch(htmlPath);
-                if (!htmlRes.ok) throw new Error('HTML加载失败: ' + htmlRes.status);
-                container.innerHTML = await htmlRes.text();
+                container.innerHTML = await this._fetchText(htmlPath, 'HTML');
 
                 await this._waitForDOM(moduleName);
 
@@ -110,11 +109,9 @@
                     document.head.appendChild(script);
                 });
 
-                this._loading = false;
                 console.log('[Loader] 加载完成: ' + moduleName);
 
             } catch (error) {
-                this._loading = false;
                 console.error('[Loader] 加载失败:', error);
                 container.innerHTML = `
                     <div class="text-center py-20">
@@ -123,26 +120,34 @@
                         <button onclick="ModuleLoader.load('${moduleName}')" class="btn-primary mt-4 px-6 py-2 rounded-lg">重新加载</button>
                     </div>
                 `;
+            } finally {
+                this._loading = false;
+                if (this._pending && this._pending !== moduleName) {
+                    var nextModule = this._pending;
+                    this._pending = null;
+                    this.load(nextModule);
+                } else {
+                    this._pending = null;
+                }
             }
         },
 
-        _waitForLoadComplete: function() {
-            var self = this;
-            return new Promise(function(resolve) {
-                var attempts = 0;
-                var check = function() {
-                    attempts++;
-                    if (!self._loading) {
-                        resolve();
-                    } else if (attempts < 100) {
-                        setTimeout(check, 100);
-                    } else {
-                        self._loading = false;
-                        resolve();
-                    }
-                };
-                check();
-            });
+        _fetchText: async function(path, type) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('当前是 file:// 直接打开，浏览器会阻止加载模块文件。请用本地服务器打开，例如 http://127.0.0.1:4173/');
+            }
+
+            var url = new URL(path, window.location.href);
+            try {
+                var res = await fetch(url.href, { cache: 'no-store' });
+                if (!res.ok) throw new Error(type + '加载失败: HTTP ' + res.status + ' - ' + path);
+                return await res.text();
+            } catch (error) {
+                if (error.message && error.message.indexOf(type + '加载失败') === 0) {
+                    throw error;
+                }
+                throw new Error(type + '加载失败: 无法请求 ' + path + '。请确认页面通过 HTTP 服务器打开，且 modules 目录可访问。原始错误: ' + error.message);
+            }
         },
 
         _waitForDOM: function(moduleName) {

@@ -1,11 +1,9 @@
 ﻿/**
  * services/supabase.js - Supabase 客户端封装
- * 功能：初始化 Supabase 客户端，提供统一的数据库访问接口
  */
 (function() {
     'use strict';
 
-    // Supabase 配置
     var CONFIG = {
         url: 'https://fhwsbdokxgjqyrbvstxq.supabase.co',
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZod3NiZG9reGdqcXlyYnZzdHhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzODQzNjAsImV4cCI6MjA5Nzk2MDM2MH0.XXR5BhhOuF0t6lzOkeYl6OPyva_QCwcV482TzOFV_84'
@@ -14,7 +12,6 @@
     window.SupabaseService = {
         _client: null,
         _initialized: false,
-        _initAttempts: 0,
 
         // ===== 初始化 =====
         init: function() {
@@ -22,11 +19,9 @@
                 return this._client;
             }
 
-            this._initAttempts++;
-            console.log('[SupabaseService] 初始化尝试 #' + this._initAttempts);
+            console.log('[SupabaseService] 初始化...');
 
             try {
-                // 从全局获取 supabase
                 var sb = window.supabase;
                 if (!sb) {
                     console.warn('[SupabaseService] window.supabase 不存在，等待加载...');
@@ -54,7 +49,7 @@
             if (!this._initialized || !this._client) {
                 this.init();
             }
-            // 如果还是 null，尝试从 window.supabase 重新创建
+            // 如果还是 null，尝试重新初始化
             if (!this._client && window.supabase) {
                 try {
                     this._client = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
@@ -224,10 +219,8 @@
     };
 
     // ===== 自动初始化 =====
-    // 等待 DOM 加载完成
     function autoInit() {
-        var sb = window.supabase;
-        if (sb && typeof sb.createClient === 'function') {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
             window.SupabaseService.init();
         } else {
             console.log('[SupabaseService] 等待 supabase 加载...');

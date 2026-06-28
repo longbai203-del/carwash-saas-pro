@@ -1,13 +1,11 @@
 ﻿/**
- * api.js - API 服务层
- * 功能：封装所有数据库操作，统一使用 SupabaseService
+ * api.js - API 服务层（增加租户/门店过滤）
  */
 (function() {
     'use strict';
 
     window.AppApi = {
 
-        // ===== 获取客户端 =====
         _getClient: function() {
             if (!window.SupabaseService) {
                 console.error('[Api] SupabaseService 未加载');
@@ -31,23 +29,35 @@
                 }
 
                 options = options || {};
+                var filter = options.filter || {};
+
+                // 自动添加租户过滤
+                var currentTenant = AppStore.get('currentTenant');
+                var tablesWithTenant = ['orders', 'customers', 'inventory', 'attendance', 'expenses', 'vehicles', 'appointments', 'products'];
+                if (tablesWithTenant.indexOf(table) !== -1 && currentTenant) {
+                    filter.tenant_id = currentTenant.id;
+                }
+
+                // 自动添加门店过滤
+                var currentStore = AppStore.get('currentStore');
+                if (currentStore && tablesWithTenant.indexOf(table) !== -1) {
+                    filter.store_id = currentStore.id;
+                }
+
                 var query = client.from(table).select(options.select || '*');
 
-                // 应用过滤器
-                if (options.filter) {
-                    Object.keys(options.filter).forEach(function(key) {
-                        query = query.eq(key, options.filter[key]);
+                if (Object.keys(filter).length > 0) {
+                    Object.keys(filter).forEach(function(key) {
+                        query = query.eq(key, filter[key]);
                     });
                 }
 
-                // 应用排序
                 if (options.order) {
                     query = query.order(options.order.by, {
                         ascending: options.order.ascending || false
                     });
                 }
 
-                // 应用限制
                 if (options.limit) {
                     query = query.limit(options.limit);
                 }
@@ -74,6 +84,20 @@
                 if (!client) {
                     console.warn('[Api] 客户端未初始化');
                     return [];
+                }
+
+                // 自动添加租户/门店ID
+                var currentTenant = AppStore.get('currentTenant');
+                var currentStore = AppStore.get('currentStore');
+                var tablesWithTenant = ['orders', 'customers', 'inventory', 'attendance', 'expenses', 'vehicles', 'appointments', 'products'];
+
+                if (tablesWithTenant.indexOf(table) !== -1) {
+                    if (currentTenant && !data.tenant_id) {
+                        data.tenant_id = currentTenant.id;
+                    }
+                    if (currentStore && !data.store_id) {
+                        data.store_id = currentStore.id;
+                    }
                 }
 
                 var result = await client.from(table).insert(data).select();
@@ -140,17 +164,45 @@
         },
 
         // ============================================================
-        // 业务方法
+        // 租户/门店
         // ============================================================
 
-        // ===== 获取用户列表 =====
+        getTenants: function() {
+            return this.query('tenants');
+        },
+
+        getStores: function(tenantId) {
+            var filter = {};
+            if (tenantId) filter.tenant_id = tenantId;
+            return this.query('stores', { filter: filter });
+        },
+
+        getCurrentStores: function() {
+            var tenant = AppStore.get('currentTenant');
+            if (!tenant) return Promise.resolve([]);
+            return this.getStores(tenant.id);
+        },
+
+        // ============================================================
+        // 用户
+        // ============================================================
+
         getUsers: function() {
             return this.query('users', {
                 order: { by: 'created_at', ascending: false }
             });
         },
 
-        // ===== 获取订单列表 =====
+        getUserById: function(userId) {
+            return this.query('users', {
+                filter: { id: userId }
+            });
+        },
+
+        // ============================================================
+        // 订单
+        // ============================================================
+
         getOrders: function() {
             return this.query('orders', {
                 order: { by: 'created_at', ascending: false },
@@ -158,7 +210,6 @@
             });
         },
 
-        // ===== 获取今日订单 =====
         getTodayOrders: function() {
             var today = new Date().toISOString().split('T')[0];
             return this.query('orders', {
@@ -167,60 +218,24 @@
             });
         },
 
-        // ===== 获取客户列表 =====
-        getCustomers: function() {
-            return this.query('customers', {
+        getOrdersByDate: function(date) {
+            return this.query('orders', {
+                filter: { date: date },
                 order: { by: 'created_at', ascending: false }
             });
         },
 
-        // ===== 获取库存列表 =====
-        getInventory: function() {
-            return this.query('inventory');
-        },
-
-        // ===== 获取考勤列表 =====
-        getAttendance: function() {
-            return this.query('attendance', {
-                order: { by: 'time', ascending: false },
-                limit: 100
+        getOrdersByStatus: function(status) {
+            return this.query('orders', {
+                filter: { status: status },
+                order: { by: 'created_at', ascending: false }
             });
         },
 
-        // ===== 获取门店列表 =====
-        getBranches: function() {
-            return this.query('stores');
-        },
-
-        // ===== 获取审计日志 =====
-        getAuditLogs: function() {
-            return this.query('audit_logs', {
-                order: { by: 'created_at', ascending: false },
-                limit: 100
-            });
-        },
-
-        // ===== 获取费用列表 =====
-        getExpenses: function() {
-            return this.query('expenses', {
-                order: { by: 'created_at', ascending: false },
-                limit: 200
-            });
-        },
-
-        // ===== 获取费用分类 =====
-        getExpenseCategories: function() {
-            return this.query('expense_categories', {
-                order: { by: 'name', ascending: true }
-            });
-        },
-
-        // ===== 创建订单 =====
         createOrder: function(orderData) {
             return this.insert('orders', orderData);
         },
 
-        // ===== 更新订单状态 =====
         updateOrderStatus: function(orderId, status) {
             return this.update('orders', orderId, {
                 status: status,
@@ -228,23 +243,160 @@
             });
         },
 
-        // ===== 创建费用记录 =====
-        createExpense: function(expenseData) {
-            return this.insert('expenses', expenseData);
-        },
+        // ============================================================
+        // 客户
+        // ============================================================
 
-        // ===== 获取用户信息 =====
-        getUserById: function(userId) {
-            return this.query('users', {
-                filter: { id: userId }
+        getCustomers: function() {
+            return this.query('customers', {
+                order: { by: 'created_at', ascending: false }
             });
         },
 
-        // ===== 获取客户信息 =====
         getCustomerById: function(customerId) {
             return this.query('customers', {
                 filter: { id: customerId }
             });
+        },
+
+        getCustomerByPlate: function(plate) {
+            return this.query('customers', {
+                filter: { plate_number: plate }
+            });
+        },
+
+        createCustomer: function(customerData) {
+            return this.insert('customers', customerData);
+        },
+
+        updateCustomer: function(customerId, data) {
+            return this.update('customers', customerId, data);
+        },
+
+        // ============================================================
+        // 库存
+        // ============================================================
+
+        getInventory: function() {
+            return this.query('inventory');
+        },
+
+        getLowStock: function() {
+            return this.query('inventory', {
+                filter: { low_stock: true }
+            });
+        },
+
+        updateInventory: function(id, data) {
+            return this.update('inventory', id, data);
+        },
+
+        // ============================================================
+        // 考勤
+        // ============================================================
+
+        getAttendance: function() {
+            return this.query('attendance', {
+                order: { by: 'time', ascending: false },
+                limit: 100
+            });
+        },
+
+        getAttendanceByDate: function(date) {
+            return this.query('attendance', {
+                filter: { date: date },
+                order: { by: 'time', ascending: false }
+            });
+        },
+
+        clockIn: function(staffName) {
+            return this.insert('attendance', [{
+                staff_name: staffName,
+                type: 'Clock In',
+                time: new Date().toISOString()
+            }]);
+        },
+
+        clockOut: function(staffName) {
+            return this.insert('attendance', [{
+                staff_name: staffName,
+                type: 'Clock Out',
+                time: new Date().toISOString()
+            }]);
+        },
+
+        // ============================================================
+        // 费用
+        // ============================================================
+
+        getExpenses: function() {
+            return this.query('expenses', {
+                order: { by: 'created_at', ascending: false },
+                limit: 200
+            });
+        },
+
+        getExpensesByDate: function(date) {
+            return this.query('expenses', {
+                filter: { expense_date: date },
+                order: { by: 'created_at', ascending: false }
+            });
+        },
+
+        getExpenseCategories: function() {
+            return this.query('expense_categories', {
+                order: { by: 'name', ascending: true }
+            });
+        },
+
+        createExpense: function(expenseData) {
+            return this.insert('expenses', expenseData);
+        },
+
+        // ============================================================
+        // 审计日志
+        // ============================================================
+
+        getAuditLogs: function() {
+            return this.query('audit_logs', {
+                order: { by: 'created_at', ascending: false },
+                limit: 100
+            });
+        },
+
+        createAuditLog: function(logData) {
+            return this.insert('audit_logs', logData);
+        },
+
+        // ============================================================
+        // 通用工具
+        // ============================================================
+
+        getBranches: function() {
+            return this.query('stores');
+        },
+
+        count: async function(table) {
+            var data = await this.query(table);
+            return data ? data.length : 0;
+        },
+
+        // 获取统计信息
+        getStats: async function() {
+            var orders = await this.getOrders();
+            var today = new Date().toISOString().split('T')[0];
+            var todayOrders = orders.filter(function(o) { return o.date === today; });
+            var totalRevenue = orders.reduce(function(s, o) { return s + (o.total || 0); }, 0);
+            var todayRevenue = todayOrders.reduce(function(s, o) { return s + (o.total || 0); }, 0);
+
+            return {
+                totalOrders: orders.length,
+                totalRevenue: totalRevenue,
+                todayOrders: todayOrders.length,
+                todayRevenue: todayRevenue,
+                avgOrder: orders.length > 0 ? totalRevenue / orders.length : 0,
+                pendingOrders: orders.filter(function(o) { return o.status === 'pending' || o.status === 'confirmed'; }).length
+            };
         }
     };
 
