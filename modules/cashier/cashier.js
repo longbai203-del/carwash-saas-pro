@@ -1,6 +1,6 @@
 /**
- * cashier.js - POS收银模块 V6
- * 升级版：快捷服务、会员识别、折扣、多支付方式、小票+税务发票
+ * cashier.js - POS收银模块 V7
+ * 完全重构：三栏布局、服务网格、购物车、多支付方式
  */
 (function() {
     'use strict';
@@ -8,645 +8,748 @@
     window.CashierModule = Object.create(ModuleBase);
     window.CashierModule.moduleName = 'cashier';
 
-    // ===== 服务价格配置 =====
-    window.CashierModule.servicePrices = {
-        '基础清洗': 30,
-        '深度清洗': 55,
-        '外部抛光': 65,
-        '内部护理': 70,
-        '全车精洗': 110,
-        '全车镀晶': 299
-    };
+    // ===== 服务数据 =====
+    window.CashierModule.services = [
+        // 洗车服务
+        { id: 's1', name: '基础清洗', price: 30, category: 'wash', icon: '🧽', desc: '外部冲洗+擦干' },
+        { id: 's2', name: '深度清洗', price: 55, category: 'wash', icon: '🧼', desc: '内外深度清洁' },
+        { id: 's3', name: '全车精洗', price: 110, category: 'wash', icon: '🚗', desc: '内外全面清洁+打蜡' },
+        // 美容服务
+        { id: 's4', name: '外部抛光', price: 65, category: 'detail', icon: '✨', desc: '漆面抛光去划痕' },
+        { id: 's5', name: '内部护理', price: 70, category: 'detail', icon: '🪑', desc: '内饰深度护理' },
+        { id: 's6', name: '全车镀晶', price: 299, category: 'detail', icon: '💎', desc: '全车镀晶保护' },
+        { id: 's7', name: '漆面陶瓷涂层', price: 450, category: 'detail', icon: '🔮', desc: '陶瓷涂层保护' },
+        // 套餐
+        { id: 'p1', name: '月度洗车卡', price: 299, category: 'package', icon: '📅', desc: '30天无限次基础洗' },
+        { id: 'p2', name: '季度护理套餐', price: 899, category: 'package', icon: '📦', desc: '精洗+抛光+内部护理' },
+        // 商品
+        { id: 'pr1', name: '车用香薰', price: 25, category: 'product', icon: '🌺', desc: '车载香薰' },
+        { id: 'pr2', name: '玻璃清洁液', price: 18, category: 'product', icon: '🧴', desc: '500ml玻璃清洁' },
+        { id: 'pr3', name: '轮胎光亮剂', price: 22, category: 'product', icon: '⚫', desc: '轮胎养护' }
+    ];
+
+    // ===== 状态 =====
+    window.CashierModule.cart = [];
+    window.CashierModule.selectedCustomer = null;
+    window.CashierModule.selectedPayment = null;
+    window.CashierModule.currentFilter = 'all';
+    window.CashierModule.recentServices = [];
 
     // ===== 缓存 DOM =====
     window.CashierModule.cacheDom = function() {
         this.el = {
-            customer: this.getEl('posCustomer'),
-            employee: this.getEl('posEmployee'),
-            service: this.getEl('posService'),
-            payment: this.getEl('posPayment'),
-            plate: this.getEl('posPlate'),
-            amount: this.getEl('posAmount'),
-            discountInput: this.getEl('posDiscountInput'),
-            subtotal: this.getEl('posSubtotal'),
-            vat: this.getEl('posVat'),
-            discount: this.getEl('posDiscount'),
-            total: this.getEl('posTotal'),
-            todayList: this.getEl('todayOrdersList'),
-            todayRevenue: this.getEl('todayRevenue'),
-            todayOrderCount: this.getEl('todayOrderCount'),
-            customerInfo: this.getEl('posCustomerInfo'),
-            custName: this.getEl('posCustName'),
-            custBalance: this.getEl('posCustBalance'),
-            custPoints: this.getEl('posCustPoints'),
-            custLevel: this.getEl('posCustLevel'),
-            orderItemsList: this.getEl('orderItemsList'),
-            cashierStatus: this.getEl('cashierStatus')
+            // 左侧
+            search: this.getEl('posSearch'),
+            customerCard: this.getEl('customerCard'),
+            custDisplayName: this.getEl('custDisplayName'),
+            custDisplayPhone: this.getEl('custDisplayPhone'),
+            custDisplayPlate: this.getEl('custDisplayPlate'),
+            custDisplayLevel: this.getEl('custDisplayLevel'),
+            custDisplayBalance: this.getEl('custDisplayBalance'),
+            custDisplayPoints: this.getEl('custDisplayPoints'),
+            custDisplayVisits: this.getEl('custDisplayVisits'),
+            vehicleCard: this.getEl('vehicleCard'),
+            vehicleDisplayPlate: this.getEl('vehicleDisplayPlate'),
+            vehicleDisplayModel: this.getEl('vehicleDisplayModel'),
+            vehicleDisplayStatus: this.getEl('vehicleDisplayStatus'),
+            vehicleLastService: this.getEl('vehicleLastService'),
+            // 中间
+            serviceGrid: this.getEl('serviceGrid'),
+            serviceSearch: this.getEl('serviceSearch'),
+            recentServices: this.getEl('recentServices'),
+            // 右侧
+            cartItems: this.getEl('cartItems'),
+            cartSubtotal: this.getEl('cartSubtotal'),
+            cartDiscount: this.getEl('cartDiscount'),
+            cartVat: this.getEl('cartVat'),
+            cartTotal: this.getEl('cartTotal'),
+            couponInput: this.getEl('couponInput'),
+            couponDisplay: this.getEl('couponDisplay'),
+            selectedPayment: this.getEl('selectedPayment'),
+            // 底部
+            cashierStaffName: this.getEl('cashierStaffName'),
+            cashierStoreName: this.getEl('cashierStoreName'),
+            cashierStatus: this.getEl('cashierStatus'),
+            cashierTodayCount: this.getEl('cashierTodayCount'),
+            cashierTodayRevenue: this.getEl('cashierTodayRevenue'),
+            // 新客户
+            newCustName: this.getEl('newCustName'),
+            newCustPhone: this.getEl('newCustPhone'),
+            newCustPlate: this.getEl('newCustPlate')
         };
-        this.orderItems = [];
-        this.selectedCustomer = null;
+        this.cart = [];
+        this.recentServices = JSON.parse(localStorage.getItem('recentServices') || '[]');
     };
 
     // ===== 绑定事件 =====
     window.CashierModule.bindEvents = function() {
         var self = this;
-
-        if (this.el.service) {
-            this.el.service.addEventListener('change', function() {
-                self.updatePrice();
-            });
-        }
-        if (this.el.amount) {
-            this.el.amount.addEventListener('input', function() {
-                self.updatePrice();
-            });
-        }
-        if (this.el.discountInput) {
-            this.el.discountInput.addEventListener('input', function() {
-                self.updatePrice();
-            });
-        }
-        if (this.el.plate) {
-            this.el.plate.addEventListener('blur', function() {
-                self.findCustomer();
-            });
-            this.el.plate.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') self.findCustomer();
-            });
-        }
-        if (this.el.customer) {
-            this.el.customer.addEventListener('change', function() {
-                self.onCustomerChange();
+        if (this.el.search) {
+            this.el.search.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') self.quickSearch();
             });
         }
     };
 
     // ===== 加载数据 =====
     window.CashierModule.loadData = function() {
-        var self = this;
-        var users = AppStore.get('allUsers') || [];
-        var customers = AppStore.get('allCustomers') || [];
-        var orders = AppStore.get('allOrders') || [];
+        this.renderServices();
+        this.renderRecentServices();
+        this.updateCart();
+        this.updateBottomBar();
+        this.updateCustomerInfo();
 
-        this.renderEmployees(users);
-        this.renderCustomers(customers);
-        this.renderTodayOrders(orders);
-        this.updatePrice();
-        this.updateStatus();
-    };
-
-    // ===== 更新状态 =====
-    window.CashierModule.updateStatus = function() {
-        if (this.el.cashierStatus) {
-            var client = window.SupabaseService ? window.SupabaseService.getClient() : null;
-            if (client) {
-                this.el.cashierStatus.textContent = '🟢 在线';
-                this.el.cashierStatus.className = 'text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full';
-            } else {
-                this.el.cashierStatus.textContent = '🔴 离线';
-                this.el.cashierStatus.className = 'text-xs bg-red-100 text-red-600 px-3 py-1 rounded-full';
-            }
+        // 设置员工和门店
+        var user = AppStore.get('currentUser');
+        if (user && this.el.cashierStaffName) {
+            this.el.cashierStaffName.textContent = user.name || user.username;
+        }
+        var store = AppStore.get('currentStore');
+        if (store && this.el.cashierStoreName) {
+            this.el.cashierStoreName.textContent = store.name || '主店';
         }
     };
 
-    // ===== 选择快捷服务 =====
-    window.CashierModule.selectService = function(name, price) {
-        if (this.el.service) {
-            var options = this.el.service.options;
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].value === name) {
-                    options[i].selected = true;
-                    break;
-                }
-            }
-        }
-        if (this.el.amount) {
-            this.el.amount.value = price;
-        }
-        this.updatePrice();
-        this.toast('✅ 已选择: ' + name + ' (' + price + ' SAR)', 'success');
-    };
+    // ===== 渲染服务网格 =====
+    window.CashierModule.renderServices = function(filter) {
+        var grid = this.el.serviceGrid;
+        if (!grid) return;
 
-    // ===== 更新价格 =====
-    window.CashierModule.updatePrice = function() {
-        var service = this.el.service ? this.el.service.value : '基础清洗';
-        var amount = this.el.amount ? parseFloat(this.el.amount.value) || this.servicePrices[service] || 30 : 30;
-        var discount = this.el.discountInput ? parseFloat(this.el.discountInput.value) || 0 : 0;
-        var config = AppStore.get('config') || {};
-        var vatRate = config.vatRate || 15;
+        filter = filter || this.currentFilter || 'all';
+        var search = this.el.serviceSearch ? this.el.serviceSearch.value.trim().toLowerCase() : '';
 
-        if (discount > amount) {
-            discount = amount;
-            if (this.el.discountInput) this.el.discountInput.value = discount;
-        }
+        var services = this.services.filter(function(s) {
+            var matchFilter = filter === 'all' || s.category === filter;
+            var matchSearch = !search || s.name.includes(search) || s.desc.includes(search);
+            return matchFilter && matchSearch;
+        });
 
-        var vatAmount = (amount - discount) * vatRate / 100;
-        var total = amount - discount + vatAmount;
-
-        if (this.el.subtotal) this.el.subtotal.textContent = amount.toFixed(2) + ' SAR';
-        if (this.el.vat) this.el.vat.textContent = vatAmount.toFixed(2) + ' SAR';
-        if (this.el.discount) this.el.discount.textContent = discount.toFixed(2) + ' SAR';
-        if (this.el.total) this.el.total.textContent = total.toFixed(2) + ' SAR';
-    };
-
-    // ===== 查找客户 =====
-    window.CashierModule.findCustomer = function() {
-        if (!this.el.plate) return;
-        var plate = this.el.plate.value.trim().toUpperCase();
-        if (!plate) {
-            if (this.el.customerInfo) this.el.customerInfo.classList.add('hidden');
-            this.selectedCustomer = null;
+        if (services.length === 0) {
+            grid.innerHTML = '<div class="col-span-2 text-center text-gray-400 py-8 text-sm">未找到服务</div>';
             return;
         }
 
-        var customers = AppStore.get('allCustomers') || [];
-        var customer = customers.find(function(c) {
-            return c.plate_number === plate;
-        });
-
-        if (customer) {
-            this.selectedCustomer = customer;
-            if (this.el.customerInfo) this.el.customerInfo.classList.remove('hidden');
-            if (this.el.custName) this.el.custName.textContent = customer.name || '未知';
-            if (this.el.custBalance) this.el.custBalance.textContent = (customer.balance || 0).toFixed(2) + ' SAR';
-            if (this.el.custPoints) this.el.custPoints.textContent = customer.points || 0;
-            if (this.el.custLevel) {
-                var level = customer.level || '普通';
-                this.el.custLevel.textContent = level;
-                this.el.custLevel.className = 'customer-level customer-level-' + level.toLowerCase();
-            }
-
-            if (this.el.customer) {
-                var options = this.el.customer.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].value === customer.id) {
-                        options[i].selected = true;
-                        break;
-                    }
-                }
-            }
-            this.toast('👤 找到客户: ' + (customer.name || customer.phone), 'success');
-        } else {
-            this.selectedCustomer = null;
-            if (this.el.customerInfo) this.el.customerInfo.classList.add('hidden');
-            this.toast('⚠️ 未找到该车牌对应的客户', 'warning');
-        }
-    };
-
-    // ===== 客户选择变化 =====
-    window.CashierModule.onCustomerChange = function() {
-        if (!this.el.customer || !this.el.customerInfo) return;
-        var customerId = this.el.customer.value;
-        if (!customerId) {
-            this.el.customerInfo.classList.add('hidden');
-            this.selectedCustomer = null;
-            return;
-        }
-
-        var customers = AppStore.get('allCustomers') || [];
-        var customer = customers.find(function(c) {
-            return c.id === customerId;
-        });
-
-        if (customer) {
-            this.selectedCustomer = customer;
-            this.el.customerInfo.classList.remove('hidden');
-            if (this.el.custName) this.el.custName.textContent = customer.name || '未知';
-            if (this.el.custBalance) this.el.custBalance.textContent = (customer.balance || 0).toFixed(2) + ' SAR';
-            if (this.el.custPoints) this.el.custPoints.textContent = customer.points || 0;
-            if (this.el.custLevel) {
-                var level = customer.level || '普通';
-                this.el.custLevel.textContent = level;
-                this.el.custLevel.className = 'customer-level customer-level-' + level.toLowerCase();
-            }
-            if (this.el.plate && customer.plate_number) {
-                this.el.plate.value = customer.plate_number;
-            }
-        }
-    };
-
-    // ===== 渲染员工下拉 =====
-    window.CashierModule.renderEmployees = function(users) {
-        if (!this.el.employee) return;
-        users = users || [];
-        var staff = users.filter(function(u) {
-            return u.status === 'approved';
-        });
-        var currentUser = AppStore.get('currentUser') || {};
         var html = '';
-        staff.forEach(function(u) {
-            var selected = (u.id === currentUser.id) ? 'selected' : '';
-            var label = (u.name || u.username) + (u.role ? ' (' + u.role + ')' : '');
-            html += '<option value="' + u.id + '" ' + selected + '>' + label + '</option>';
+        services.forEach(function(s) {
+            html += '<div onclick="CashierModule.addToCart(\'' + s.id + '\')" ' +
+                    'class="service-item bg-gray-50 hover:bg-blue-50 rounded-xl p-3 border hover:border-blue-300 cursor-pointer transition">' +
+                    '<div class="flex items-start gap-2">' +
+                    '<span class="text-xl">' + s.icon + '</span>' +
+                    '<div class="flex-1">' +
+                    '<div class="font-medium text-sm">' + s.name + '</div>' +
+                    '<div class="text-xs text-gray-400">' + s.desc + '</div>' +
+                    '<div class="text-xs font-bold text-blue-600 mt-1">' + s.price.toFixed(2) + ' SAR</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
         });
-        this.el.employee.innerHTML = html || '<option value="">暂无员工</option>';
+        grid.innerHTML = html;
     };
 
-    // ===== 渲染客户下拉 =====
-    window.CashierModule.renderCustomers = function(customers) {
-        if (!this.el.customer) return;
-        customers = customers || [];
-        var val = this.el.customer.value;
-        var html = '<option value="">散客</option>';
-        customers.forEach(function(c) {
-            var label = c.name + (c.plate_number ? ' (' + c.plate_number + ')' : '');
-            html += '<option value="' + c.id + '">' + label + '</option>';
-        });
-        this.el.customer.innerHTML = html;
-        if (val) this.el.customer.value = val;
+    // ===== 筛选服务 =====
+    window.CashierModule.filterServices = function(category) {
+        if (category) {
+            this.currentFilter = category;
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.cat === category) btn.classList.add('active');
+            });
+        }
+        this.renderServices();
     };
 
-    // ===== 渲染今日订单 =====
-    window.CashierModule.renderTodayOrders = function(orders) {
-        if (!this.el.todayList) return;
-        orders = orders || [];
-        var today = new Date().toISOString().split('T')[0];
-        var todayOrders = orders.filter(function(o) {
-            return o.date === today && o.status !== 'cancelled';
-        });
+    // ===== 最近服务 =====
+    window.CashierModule.renderRecentServices = function() {
+        var el = this.el.recentServices;
+        if (!el) return;
 
-        var totalRevenue = todayOrders.reduce(function(s, o) {
-            return s + (parseFloat(o.total) || 0);
+        var recent = this.recentServices.slice(0, 8);
+        if (recent.length === 0) {
+            el.innerHTML = '<span class="text-xs text-gray-400">暂无最近使用</span>';
+            return;
+        }
+
+        var html = '';
+        recent.forEach(function(id) {
+            var service = this.services.find(function(s) { return s.id === id; });
+            if (service) {
+                html += '<button onclick="CashierModule.addToCart(\'' + service.id + '\')" ' +
+                        'class="text-xs bg-gray-100 hover:bg-blue-100 px-2 py-1 rounded-lg">' +
+                        service.icon + ' ' + service.name +
+                        '</button>';
+            }
+        }.bind(this));
+        el.innerHTML = html;
+    };
+
+    // ===== 添加到购物车 =====
+    window.CashierModule.addToCart = function(serviceId) {
+        var service = this.services.find(function(s) { return s.id === serviceId; });
+        if (!service) return;
+
+        // 检查是否已存在
+        var existing = this.cart.find(function(item) { return item.id === serviceId; });
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            this.cart.push({
+                id: service.id,
+                name: service.name,
+                price: service.price,
+                icon: service.icon,
+                qty: 1
+            });
+        }
+
+        // 更新最近使用
+        this.recentServices = this.recentServices.filter(function(id) { return id !== serviceId; });
+        this.recentServices.unshift(serviceId);
+        if (this.recentServices.length > 20) this.recentServices.pop();
+        localStorage.setItem('recentServices', JSON.stringify(this.recentServices));
+
+        this.updateCart();
+        this.renderRecentServices();
+        this.toast('✅ 已添加: ' + service.name, 'success');
+    };
+
+    // ===== 更新购物车 =====
+    window.CashierModule.updateCart = function() {
+        var list = this.el.cartItems;
+        if (!list) return;
+
+        if (this.cart.length === 0) {
+            list.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">请选择服务或商品</div>';
+            this.updateTotals();
+            return;
+        }
+
+        var html = '';
+        this.cart.forEach(function(item, index) {
+            var total = item.price * item.qty;
+            html += '<div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg">' +
+                    '<div class="flex items-center gap-2">' +
+                    '<span>' + item.icon + '</span>' +
+                    '<span class="text-sm font-medium">' + item.name + '</span>' +
+                    '<div class="flex items-center gap-1">' +
+                    '<button onclick="CashierModule.changeQty(' + index + ', -1)" class="text-xs text-gray-400 hover:text-blue-600 w-5 h-5 rounded-full hover:bg-blue-50">-</button>' +
+                    '<span class="text-xs w-5 text-center">' + item.qty + '</span>' +
+                    '<button onclick="CashierModule.changeQty(' + index + ', 1)" class="text-xs text-gray-400 hover:text-blue-600 w-5 h-5 rounded-full hover:bg-blue-50">+</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-2">' +
+                    '<span class="text-sm font-bold text-blue-600">' + total.toFixed(2) + ' SAR</span>' +
+                    '<button onclick="CashierModule.removeFromCart(' + index + ')" class="text-red-400 hover:text-red-600 text-xs">✕</button>' +
+                    '</div>' +
+                    '</div>';
+        });
+        list.innerHTML = html;
+        this.updateTotals();
+    };
+
+    // ===== 修改数量 =====
+    window.CashierModule.changeQty = function(index, delta) {
+        if (index < 0 || index >= this.cart.length) return;
+        var item = this.cart[index];
+        item.qty = Math.max(1, item.qty + delta);
+        this.updateCart();
+    };
+
+    // ===== 移除商品 =====
+    window.CashierModule.removeFromCart = function(index) {
+        if (index < 0 || index >= this.cart.length) return;
+        this.cart.splice(index, 1);
+        this.updateCart();
+    };
+
+    // ===== 清空购物车 =====
+    window.CashierModule.clearCart = function() {
+        if (this.cart.length === 0) return;
+        this.cart = [];
+        this.updateCart();
+        this.toast('🗑️ 已清空购物车', 'info');
+    };
+
+    // ===== 更新合计 =====
+    window.CashierModule.updateTotals = function() {
+        var subtotal = this.cart.reduce(function(sum, item) {
+            return sum + (item.price * item.qty);
         }, 0);
 
-        if (this.el.todayRevenue) {
-            this.el.todayRevenue.textContent = totalRevenue.toFixed(2) + ' SAR';
-        }
-        if (this.el.todayOrderCount) {
-            this.el.todayOrderCount.textContent = todayOrders.length;
+        var discount = 0;
+        // 检查是否有优惠券
+        if (this._couponDiscount) {
+            discount = this._couponDiscount;
         }
 
-        if (todayOrders.length === 0) {
-            this.el.todayList.innerHTML = '<div class="text-center text-gray-400 py-4">今日暂无订单</div>';
+        var vatRate = 15;
+        var vat = (subtotal - discount) * vatRate / 100;
+        var total = subtotal - discount + vat;
+
+        if (this.el.cartSubtotal) this.el.cartSubtotal.textContent = subtotal.toFixed(2) + ' SAR';
+        if (this.el.cartDiscount) this.el.cartDiscount.textContent = discount.toFixed(2) + ' SAR';
+        if (this.el.cartVat) this.el.cartVat.textContent = vat.toFixed(2) + ' SAR';
+        if (this.el.cartTotal) this.el.cartTotal.textContent = total.toFixed(2) + ' SAR';
+    };
+
+    // ===== 选择支付方式 =====
+    window.CashierModule.selectPayment = function(method) {
+        this.selectedPayment = method;
+        var labels = {
+            cash: '💰 现金',
+            mada: '🇸🇦 mada',
+            card: '💳 银行卡',
+            apple_pay: '📱 Apple Pay',
+            stc_pay: '📱 STC Pay',
+            wallet: '👛 钱包余额'
+        };
+        if (this.el.selectedPayment) {
+            this.el.selectedPayment.textContent = '✅ 已选择: ' + (labels[method] || method);
+            this.el.selectedPayment.className = 'text-xs text-green-600 mt-1 text-center';
+        }
+        document.querySelectorAll('.payment-btn').forEach(function(btn) {
+            btn.classList.remove('border-blue-400', 'bg-blue-50');
+            if (btn.dataset.payment === method) {
+                btn.classList.add('border-blue-400', 'bg-blue-50');
+            }
+        });
+    };
+
+    // ===== 应用优惠券 =====
+    window.CashierModule.applyCoupon = function() {
+        var input = this.el.couponInput;
+        if (!input) return;
+        var code = input.value.trim();
+        if (!code) {
+            this.toast('请输入优惠券码', 'error');
             return;
         }
 
-        var html = '';
-        todayOrders.slice(0, 20).forEach(function(o) {
-            var time = o.created_at ? new Date(o.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '';
-            var statusMap = {
-                pending: '⏳',
-                confirmed: '✅',
-                in_progress: '🔄',
-                completed: '✔️',
-                cancelled: '❌'
-            };
-            html += '<div class="flex justify-between items-center p-2 border-b hover:bg-gray-50 rounded">';
-            html += '<div class="flex items-center gap-3">';
-            html += '<span class="text-xs text-gray-400">' + time + '</span>';
-            html += '<span class="font-medium">' + (o.plate_number || 'N/A') + '</span>';
-            html += '<span class="text-xs text-gray-400">' + (o.service_name || '') + '</span>';
-            html += '<span class="text-xs">' + (statusMap[o.status] || '') + '</span>';
-            html += '</div>';
-            html += '<div class="font-bold text-blue-600">' + (parseFloat(o.total) || 0).toFixed(2) + ' SAR</div>';
-            html += '</div>';
-        });
-        this.el.todayList.innerHTML = html;
+        // 模拟优惠券验证
+        if (code === 'WELCOME10') {
+            this._couponDiscount = 10;
+            this.el.couponDisplay.classList.remove('hidden');
+            this.el.couponDisplay.textContent = '✅ 优惠券已应用: -10 SAR';
+            this.updateTotals();
+            this.toast('✅ 优惠券已应用', 'success');
+        } else if (code === 'VIP20') {
+            this._couponDiscount = 20;
+            this.el.couponDisplay.classList.remove('hidden');
+            this.el.couponDisplay.textContent = '✅ 优惠券已应用: -20 SAR';
+            this.updateTotals();
+            this.toast('✅ 优惠券已应用', 'success');
+        } else {
+            this.toast('❌ 无效优惠券码', 'error');
+        }
     };
 
-    // ===== 保存订单 =====
-    window.CashierModule.saveOrder = function() {
-        var self = this;
-        var currentUser = AppStore.get('currentUser') || {};
+    // ===== 收款结账 =====
+    window.CashierModule.checkout = function() {
+        if (this.cart.length === 0) {
+            this.toast('请添加服务或商品', 'error');
+            return;
+        }
 
+        if (!this.selectedPayment) {
+            this.toast('请选择支付方式', 'error');
+            return;
+        }
+
+        var currentUser = AppStore.get('currentUser') || {};
         if (!currentUser.id) {
             this.toast('请先登录', 'error');
             return;
         }
 
-        if (!this.el.plate) {
-            this.toast('页面加载未完成', 'error');
-            return;
-        }
-
-        var plate = this.el.plate.value.trim().toUpperCase();
+        var plate = this.selectedCustomer ? (this.selectedCustomer.plate_number || '') : '';
         if (!plate) {
-            this.toast('请输入车牌号', 'error');
-            return;
+            // 如果没有客户，使用快速输入的
+            var searchVal = this.el.search ? this.el.search.value.trim() : '';
+            plate = searchVal.toUpperCase() || 'GUEST';
         }
 
-        var serviceName = this.el.service ? this.el.service.value : '基础清洗';
-        var amount = this.el.amount ? parseFloat(this.el.amount.value) || this.servicePrices[serviceName] || 30 : 30;
-        var discount = this.el.discountInput ? parseFloat(this.el.discountInput.value) || 0 : 0;
-        var paymentMethod = this.el.payment ? this.el.payment.value : 'cash';
-        var employeeId = this.el.employee ? this.el.employee.value || null : null;
-        var customerId = this.el.customer ? this.el.customer.value || null : null;
+        var subtotal = this.cart.reduce(function(sum, item) {
+            return sum + (item.price * item.qty);
+        }, 0);
+        var discount = this._couponDiscount || 0;
+        var vatRate = 15;
+        var vat = (subtotal - discount) * vatRate / 100;
+        var total = subtotal - discount + vat;
 
-        if (amount <= 0) {
-            this.toast('金额必须大于0', 'error');
-            return;
-        }
-
-        var config = AppStore.get('config') || {};
-        var vatRate = config.vatRate || 15;
-        var netAmount = amount - discount;
-        var vat = netAmount * vatRate / 100;
-        var total = netAmount + vat;
         var today = new Date().toISOString().split('T')[0];
-
         var orders = AppStore.get('allOrders') || [];
         var todayOrders = orders.filter(function(o) { return o.date === today; });
         var orderNumber = 'ORD-' + today.replace(/-/g, '') + '-' + String(todayOrders.length + 1).padStart(4, '0');
 
-        var users = AppStore.get('allUsers') || [];
-        var employee = users.find(function(u) { return u.id === employeeId; });
+        var serviceNames = this.cart.map(function(item) {
+            return item.name + '×' + item.qty;
+        }).join(', ');
 
         var orderData = {
             order_number: orderNumber,
             plate_number: plate,
-            customer_id: customerId,
-            employee_id: employeeId,
-            staff_name: employee ? (employee.name || employee.username) : (currentUser.name || currentUser.username),
-            service_name: serviceName,
-            amount: amount,
+            customer_id: this.selectedCustomer ? this.selectedCustomer.id : null,
+            employee_id: currentUser.id,
+            staff_name: currentUser.name || currentUser.username,
+            service_name: serviceNames,
+            amount: subtotal,
             discount: discount,
             vat: vat,
             total: total,
-            payment_method: paymentMethod,
+            payment_method: this.selectedPayment,
             status: 'completed',
             date: today,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            items: JSON.stringify(this.cart)
         };
 
+        var self = this;
         AppApi.insert('orders', orderData)
             .then(function(data) {
                 if (data && data.length > 0) {
                     var allOrders = AppStore.get('allOrders') || [];
                     allOrders.unshift(data[0]);
                     AppStore.set('allOrders', allOrders);
-                    self.renderTodayOrders(allOrders);
-                    self.toast('✅ 订单保存成功: ' + total.toFixed(2) + ' SAR', 'success');
 
-                    if (self.el.plate) self.el.plate.value = '';
-                    if (self.el.amount) self.el.amount.value = '';
-                    if (self.el.discountInput) self.el.discountInput.value = '0';
-                    if (self.el.customerInfo) self.el.customerInfo.classList.add('hidden');
-                    if (self.el.customer) self.el.customer.value = '';
-                    self.selectedCustomer = null;
-                    self.updatePrice();
+                    // 更新客户信息
+                    if (self.selectedCustomer) {
+                        var customers = AppStore.get('allCustomers') || [];
+                        var cust = customers.find(function(c) { return c.id === self.selectedCustomer.id; });
+                        if (cust) {
+                            cust.visit_count = (cust.visit_count || 0) + 1;
+                            cust.last_visit = new Date().toISOString();
+                            AppStore.set('allCustomers', customers);
+                        }
+                    }
 
+                    self.toast('✅ 收款成功: ' + total.toFixed(2) + ' SAR', 'success');
+
+                    // 清空购物车
+                    self.cart = [];
+                    self._couponDiscount = 0;
+                    self.selectedPayment = null;
+                    self.updateCart();
+                    self.updateBottomBar();
+
+                    if (self.el.couponDisplay) {
+                        self.el.couponDisplay.classList.add('hidden');
+                        self.el.couponDisplay.textContent = '';
+                    }
+                    if (self.el.selectedPayment) {
+                        self.el.selectedPayment.textContent = '请选择支付方式';
+                        self.el.selectedPayment.className = 'text-xs text-blue-600 mt-1 text-center';
+                    }
+                    document.querySelectorAll('.payment-btn').forEach(function(btn) {
+                        btn.classList.remove('border-blue-400', 'bg-blue-50');
+                    });
+
+                    // 语音播报
                     self.voiceTotal();
                 }
             })
             .catch(function(error) {
-                self.toast('❌ 保存失败: ' + error.message, 'error');
+                self.toast('❌ 收款失败: ' + error.message, 'error');
             });
     };
 
-    // ===== 显示打印选项 =====
+    // ===== 快速搜索 =====
+    window.CashierModule.quickSearch = function() {
+        var input = this.el.search;
+        if (!input) return;
+        var query = input.value.trim();
+        if (!query) {
+            this.toast('请输入车牌或手机号', 'error');
+            return;
+        }
+
+        var customers = AppStore.get('allCustomers') || [];
+        var customer = customers.find(function(c) {
+            return c.plate_number === query.toUpperCase() ||
+                   c.phone === query ||
+                   c.name === query;
+        });
+
+        if (customer) {
+            this.selectedCustomer = customer;
+            this.updateCustomerInfo();
+            this.toast('👤 找到客户: ' + (customer.name || customer.phone), 'success');
+        } else {
+            this.selectedCustomer = null;
+            this.updateCustomerInfo();
+            this.toast('⚠️ 未找到客户，可快速添加', 'warning');
+            // 自动弹出添加客户
+            this.quickNewCustomer();
+        }
+    };
+
+    // ===== 更新客户信息 =====
+    window.CashierModule.updateCustomerInfo = function() {
+        var customer = this.selectedCustomer;
+        var card = this.el.customerCard;
+        if (!card) return;
+
+        if (!customer) {
+            card.classList.add('hidden');
+            if (this.el.vehicleCard) this.el.vehicleCard.classList.add('hidden');
+            return;
+        }
+
+        card.classList.remove('hidden');
+        if (this.el.custDisplayName) this.el.custDisplayName.textContent = customer.name || '-';
+        if (this.el.custDisplayPhone) this.el.custDisplayPhone.textContent = customer.phone || '-';
+        if (this.el.custDisplayPlate) this.el.custDisplayPlate.textContent = customer.plate_number || '-';
+        if (this.el.custDisplayBalance) this.el.custDisplayBalance.textContent = (customer.balance || 0).toFixed(2) + ' SAR';
+        if (this.el.custDisplayPoints) this.el.custDisplayPoints.textContent = customer.points || 0;
+        if (this.el.custDisplayVisits) this.el.custDisplayVisits.textContent = customer.visit_count || 0;
+        if (this.el.custDisplayLevel) {
+            var level = customer.level || '普通';
+            this.el.custDisplayLevel.textContent = level;
+            this.el.custDisplayLevel.className = 'customer-level customer-level-' + level.toLowerCase();
+        }
+
+        // 车辆信息
+        if (this.el.vehicleCard) {
+            var vehicles = AppStore.get('allVehicles') || [];
+            var vehicle = vehicles.find(function(v) { return v.customer_id === customer.id; });
+            if (vehicle) {
+                this.el.vehicleCard.classList.remove('hidden');
+                if (this.el.vehicleDisplayPlate) this.el.vehicleDisplayPlate.textContent = vehicle.plate_number || '-';
+                if (this.el.vehicleDisplayModel) {
+                    var model = (vehicle.brand || '') + ' ' + (vehicle.model || '');
+                    this.el.vehicleDisplayModel.textContent = model || '-';
+                }
+                if (this.el.vehicleDisplayStatus) {
+                    this.el.vehicleDisplayStatus.textContent = '✅ 已登记';
+                    this.el.vehicleDisplayStatus.className = 'text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full';
+                }
+                if (this.el.vehicleLastService) {
+                    var orders = AppStore.get('allOrders') || [];
+                    var lastOrder = orders.find(function(o) { return o.customer_id === customer.id; });
+                    this.el.vehicleLastService.textContent = lastOrder ? new Date(lastOrder.created_at).toLocaleDateString() : '-';
+                }
+            } else {
+                this.el.vehicleCard.classList.add('hidden');
+            }
+        }
+    };
+
+    // ===== 更新底部栏 =====
+    window.CashierModule.updateBottomBar = function() {
+        var orders = AppStore.get('allOrders') || [];
+        var today = new Date().toISOString().split('T')[0];
+        var todayOrders = orders.filter(function(o) {
+            return o.date === today && o.status === 'completed';
+        });
+
+        var count = todayOrders.length;
+        var revenue = todayOrders.reduce(function(sum, o) {
+            return sum + (parseFloat(o.total) || 0);
+        }, 0);
+
+        if (this.el.cashierTodayCount) this.el.cashierTodayCount.textContent = count;
+        if (this.el.cashierTodayRevenue) this.el.cashierTodayRevenue.textContent = revenue.toFixed(2) + ' SAR';
+    };
+
+    // ===== 快速添加客户 =====
+    window.CashierModule.quickNewCustomer = function() {
+        var modal = document.getElementById('newCustomerModal');
+        if (modal) modal.classList.remove('hidden');
+        if (this.el.newCustName) setTimeout(function() { this.el.newCustName.focus(); }.bind(this), 100);
+    };
+
+    window.CashierModule.closeNewCustomer = function() {
+        var modal = document.getElementById('newCustomerModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    window.CashierModule.saveNewCustomer = function() {
+        var self = this;
+        var name = this.el.newCustName ? this.el.newCustName.value.trim() : '';
+        var phone = this.el.newCustPhone ? this.el.newCustPhone.value.trim() : '';
+        var plate = this.el.newCustPlate ? this.el.newCustPlate.value.trim().toUpperCase() : '';
+
+        if (!name || !phone) {
+            this.toast('请填写姓名和手机号', 'error');
+            return;
+        }
+
+        var tenant = AppStore.get('currentTenant');
+        var store = AppStore.get('currentStore');
+
+        var customerData = {
+            tenant_id: tenant ? tenant.id : null,
+            store_id: store ? store.id : null,
+            name: name,
+            phone: phone,
+            plate_number: plate,
+            points: 0,
+            balance: 0,
+            level: '普通',
+            visit_count: 0
+        };
+
+        AppApi.insert('customers', customerData)
+            .then(function(data) {
+                if (data && data.length > 0) {
+                    var customers = AppStore.get('allCustomers') || [];
+                    customers.push(data[0]);
+                    AppStore.set('allCustomers', customers);
+                    self.selectedCustomer = data[0];
+                    self.updateCustomerInfo();
+                    if (self.el.search) self.el.search.value = plate || phone;
+                    self.toast('✅ 客户已添加: ' + name, 'success');
+                    self.closeNewCustomer();
+                }
+            })
+            .catch(function(error) {
+                self.toast('❌ 添加失败: ' + error.message, 'error');
+            });
+    };
+
+    // ===== 挂单功能 =====
+    window.CashierModule.holdCart = function() {
+        if (this.cart.length === 0) {
+            this.toast('购物车为空', 'error');
+            return;
+        }
+
+        var plate = this.selectedCustomer ? (this.selectedCustomer.plate_number || 'GUEST') : 'GUEST';
+        var holdData = {
+            id: Date.now(),
+            plate: plate,
+            customer: this.selectedCustomer,
+            cart: JSON.parse(JSON.stringify(this.cart)),
+            discount: this._couponDiscount || 0,
+            payment: this.selectedPayment,
+            held_at: new Date().toISOString()
+        };
+
+        if (!window.heldOrders) window.heldOrders = [];
+        window.heldOrders.push(holdData);
+
+        // 清空购物车
+        this.cart = [];
+        this._couponDiscount = 0;
+        this.selectedPayment = null;
+        this.updateCart();
+        if (this.el.couponDisplay) {
+            this.el.couponDisplay.classList.add('hidden');
+            this.el.couponDisplay.textContent = '';
+        }
+        if (this.el.selectedPayment) {
+            this.el.selectedPayment.textContent = '请选择支付方式';
+            this.el.selectedPayment.className = 'text-xs text-blue-600 mt-1 text-center';
+        }
+        document.querySelectorAll('.payment-btn').forEach(function(btn) {
+            btn.classList.remove('border-blue-400', 'bg-blue-50');
+        });
+
+        this.toast('📌 已挂单: ' + plate, 'success');
+        this.showHoldOrders();
+    };
+
+    window.CashierModule.showHoldOrders = function() {
+        var modal = document.getElementById('holdOrdersModal');
+        if (!modal) return;
+        var list = document.getElementById('holdOrdersList');
+        if (!list) return;
+
+        var orders = window.heldOrders || [];
+        if (orders.length === 0) {
+            list.innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">暂无挂单</div>';
+        } else {
+            var html = '';
+            orders.forEach(function(o, index) {
+                var time = new Date(o.held_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                var items = o.cart.map(function(item) {
+                    return item.name + '×' + item.qty;
+                }).join(', ');
+                html += '<div class="flex justify-between items-center p-2 border-b hover:bg-gray-50 rounded">' +
+                        '<div><span class="font-medium">🚗 ' + o.plate + '</span>' +
+                        '<span class="text-xs text-gray-400 ml-2">' + items + '</span>' +
+                        '<span class="text-xs text-gray-400 ml-2">' + time + '</span></div>' +
+                        '<div class="flex gap-2">' +
+                        '<button onclick="CashierModule.loadHoldOrder(' + index + ')" class="text-blue-600 text-xs hover:underline">加载</button>' +
+                        '<button onclick="CashierModule.removeHoldOrder(' + index + ')" class="text-red-500 text-xs hover:underline">删除</button>' +
+                        '</div></div>';
+            });
+            list.innerHTML = html;
+        }
+        modal.classList.remove('hidden');
+    };
+
+    window.CashierModule.loadHoldOrder = function(index) {
+        var orders = window.heldOrders || [];
+        if (index < 0 || index >= orders.length) return;
+        var o = orders[index];
+
+        this.selectedCustomer = o.customer;
+        this.cart = JSON.parse(JSON.stringify(o.cart));
+        this._couponDiscount = o.discount || 0;
+        this.selectedPayment = o.payment;
+
+        if (this._couponDiscount > 0 && this.el.couponDisplay) {
+            this.el.couponDisplay.classList.remove('hidden');
+            this.el.couponDisplay.textContent = '✅ 优惠券已应用: -' + this._couponDiscount + ' SAR';
+        }
+
+        if (this.selectedPayment) {
+            this.selectPayment(this.selectedPayment);
+        }
+
+        orders.splice(index, 1);
+        this.updateCart();
+        this.updateCustomerInfo();
+        this.toast('✅ 已加载挂单', 'success');
+        this.closeHoldOrders();
+    };
+
+    window.CashierModule.removeHoldOrder = function(index) {
+        var orders = window.heldOrders || [];
+        if (index < 0 || index >= orders.length) return;
+        orders.splice(index, 1);
+        this.showHoldOrders();
+    };
+
+    window.CashierModule.closeHoldOrders = function() {
+        var modal = document.getElementById('holdOrdersModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    // ===== 打印功能 =====
     window.CashierModule.showPrintOptions = function() {
         var modal = document.getElementById('printOptionsModal');
-        if (modal) {
-            modal.classList.remove('hidden');
-        }
+        if (modal) modal.classList.remove('hidden');
     };
 
-    // ===== 关闭打印选项 =====
     window.CashierModule.closePrintOptions = function() {
         var modal = document.getElementById('printOptionsModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-    };
-
-    // ===== 小票打印（热敏纸格式）=====
-    window.CashierModule.printReceipt = function() {
-        var plate = this.el.plate ? this.el.plate.value || 'N/A' : 'N/A';
-        var service = this.el.service ? this.el.service.value : 'N/A';
-        var amount = this.el.amount ? parseFloat(this.el.amount.value) || 0 : 0;
-        var discount = this.el.discountInput ? parseFloat(this.el.discountInput.value) || 0 : 0;
-        var vatRate = 15;
-        var vatAmount = (amount - discount) * vatRate / 100;
-        var netAmount = amount - discount;
-        var totalAmount = netAmount + vatAmount;
-        var paymentMethod = this.el.payment ? this.el.payment.options[this.el.payment.selectedIndex].text : '现金';
-
-        var config = AppStore.get('config') || {};
-        var shopName = config.shopName || 'Car Wash Pro';
-        var taxId = config.shopTaxId || 'N/A';
-        var address = config.shopAddress || '';
-        var phone = config.shopPhone || '';
-
-        var now = new Date();
-        var dateStr = now.toLocaleDateString('zh-CN');
-        var timeStr = now.toLocaleTimeString('zh-CN');
-        var orderNumber = 'ORD-' + now.getFullYear() + 
-                          String(now.getMonth() + 1).padStart(2, '0') + 
-                          String(now.getDate()).padStart(2, '0') + 
-                          '-' + String(Date.now()).slice(-6);
-
-        var win = window.open('', '_blank', 'width=400,height=600');
-        if (!win) {
-            this.toast('请允许弹窗', 'error');
-            return;
-        }
-
-        win.document.write('<!DOCTYPE html><html><head><title>小票</title><style>' +
-            'body { font-family: "Courier New", monospace; padding: 10px; max-width: 300px; margin: auto; font-size: 12px; }' +
-            '.center { text-align: center; }' +
-            '.header { font-size: 18px; font-weight: bold; }' +
-            '.line { border-top: 1px dashed #999; margin: 8px 0; }' +
-            '.double-line { border-top: 2px solid #000; margin: 8px 0; }' +
-            '.row { display: flex; justify-content: space-between; padding: 2px 0; }' +
-            '.bold { font-weight: bold; }' +
-            '.total { font-size: 20px; font-weight: bold; }' +
-            '.footer { font-size: 10px; color: #666; margin-top: 8px; }' +
-            '.small { font-size: 10px; }' +
-            '@media print { body { padding: 5px; } }' +
-            '</style></head><body>' +
-            '<div class="center">' +
-            '<div class="header">🧼 ' + shopName + '</div>' +
-            '<div class="small">' + address + '</div>' +
-            '<div class="small">📞 ' + phone + '</div>' +
-            '<div class="small">税号: ' + taxId + '</div>' +
-            '<div class="line"></div>' +
-            '<div class="row"><span>日期</span><span>' + dateStr + ' ' + timeStr + '</span></div>' +
-            '<div class="row"><span>单号</span><span>' + orderNumber + '</span></div>' +
-            '<div class="row"><span>车牌</span><span><strong>' + plate + '</strong></span></div>' +
-            '<div class="line"></div>' +
-            '<div class="row"><span>服务项目</span><span>' + service + '</span></div>' +
-            '<div class="row"><span>金额</span><span>' + amount.toFixed(2) + ' SAR</span></div>' +
-            (discount > 0 ? '<div class="row"><span>折扣</span><span>- ' + discount.toFixed(2) + ' SAR</span></div>' : '') +
-            '<div class="row"><span>小计</span><span>' + netAmount.toFixed(2) + ' SAR</span></div>' +
-            '<div class="row"><span>增值税 15%</span><span>' + vatAmount.toFixed(2) + ' SAR</span></div>' +
-            '<div class="double-line"></div>' +
-            '<div class="row total"><span>总计</span><span>' + totalAmount.toFixed(2) + ' SAR</span></div>' +
-            '<div class="double-line"></div>' +
-            '<div class="row"><span>支付方式</span><span>' + paymentMethod + '</span></div>' +
-            '<div class="line"></div>' +
-            '<div class="center" style="font-size:14px;">✅ 感谢光临！</div>' +
-            '<div class="footer center">' + (config.receiptFooter || '欢迎再次光临') + '</div>' +
-            '</div>' +
-            '<script>setTimeout(function(){ window.print(); }, 500);<\/script>' +
-            '</body></html>'
-        );
-        win.document.close();
-
-        this.closePrintOptions();
-    };
-
-    // ===== 税务发票打印（A4格式 - 符合沙特税务要求）=====
-    window.CashierModule.printTaxInvoice = function() {
-        var plate = this.el.plate ? this.el.plate.value || 'N/A' : 'N/A';
-        var service = this.el.service ? this.el.service.value : 'N/A';
-        var amount = this.el.amount ? parseFloat(this.el.amount.value) || 0 : 0;
-        var discount = this.el.discountInput ? parseFloat(this.el.discountInput.value) || 0 : 0;
-        var vatRate = 15;
-        var vatAmount = (amount - discount) * vatRate / 100;
-        var netAmount = amount - discount;
-        var totalAmount = netAmount + vatAmount;
-        var paymentMethod = this.el.payment ? this.el.payment.options[this.el.payment.selectedIndex].text : '现金';
-        var customerName = this.selectedCustomer ? this.selectedCustomer.name : 'عميل عام (散客)';
-        var customerPhone = this.selectedCustomer ? this.selectedCustomer.phone : '';
-
-        var config = AppStore.get('config') || {};
-        var shopName = config.companyNameAr || config.shopName || 'شركة الخدمات البترولية';
-        var shopNameEn = config.companyNameEn || 'Petroleum Services Co.';
-        var taxId = config.vatNumber || config.shopTaxId || '300056462300003';
-        var address = config.companyAddress || config.shopAddress || 'الرياض، النيسيم الشرقى';
-        var phone = config.companyPhone || config.shopPhone || '920002667';
-        var crNumber = config.crNumber || '4030571509';
-
-        var now = new Date();
-        var dateStr = now.getFullYear() + '/' + 
-                      String(now.getMonth() + 1).padStart(2, '0') + '/' + 
-                      String(now.getDate()).padStart(2, '0');
-        var timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
-                      String(now.getMinutes()).padStart(2, '0') + ':' + 
-                      String(now.getSeconds()).padStart(2, '0');
-        var invoiceNumber = 'INV-' + now.getFullYear() + 
-                            String(now.getMonth() + 1).padStart(2, '0') + 
-                            String(now.getDate()).padStart(2, '0') + 
-                            '-' + String(Date.now()).slice(-8);
-
-        var currentUser = AppStore.get('currentUser') || {};
-
-        var win = window.open('', '_blank', 'width=800,height=1000');
-        if (!win) {
-            this.toast('请允许弹窗', 'error');
-            return;
-        }
-
-        win.document.write('<!DOCTYPE html><html dir="rtl" lang="ar"><head><title>فاتورة ضريبية</title><style>' +
-            'body { font-family: "Times New Roman", Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; }' +
-            '.invoice { border: 1px solid #333; padding: 30px; border-radius: 8px; }' +
-            '.header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px; }' +
-            '.shop-name { font-size: 24px; font-weight: bold; color: #1a3a6b; }' +
-            '.shop-details { font-size: 12px; color: #555; margin-top: 5px; }' +
-            '.title { text-align: center; font-size: 20px; font-weight: bold; background: #f0f0f0; padding: 8px; margin: 10px 0; }' +
-            '.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; font-size: 13px; margin: 10px 0; }' +
-            '.info-grid .label { font-weight: bold; }' +
-            '.table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }' +
-            '.table th { background: #1a3a6b; color: white; padding: 8px; text-align: center; }' +
-            '.table td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }' +
-            '.table .total-row { font-weight: bold; background: #f9f9f9; }' +
-            '.totals { width: 60%; margin-right: auto; margin-top: 15px; }' +
-            '.totals .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }' +
-            '.totals .grand-total { font-size: 18px; font-weight: bold; border-top: 2px solid #333; padding-top: 8px; }' +
-            '.footer { margin-top: 20px; font-size: 11px; text-align: center; border-top: 1px solid #ddd; padding-top: 15px; }' +
-            '.declaration { font-size: 11px; text-align: justify; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; }' +
-            '.signature { display: flex; justify-content: space-between; margin-top: 20px; font-size: 12px; }' +
-            '@media print { body { padding: 20px; } }' +
-            '.arabic { font-family: "Traditional Arabic", Arial, sans-serif; }' +
-            '</style></head><body>' +
-            '<div class="invoice">' +
-            // Header
-            '<div class="header">' +
-            '<div class="shop-name">🧼 ' + shopName + '</div>' +
-            '<div class="shop-details">' + shopNameEn + '</div>' +
-            '<div class="shop-details">' + address + '</div>' +
-            '<div class="shop-details">📞 ' + phone + ' | الرقم الضريبي: ' + taxId + ' | سجل تجاري: ' + crNumber + '</div>' +
-            '</div>' +
-            // Title
-            '<div class="title">فاتورة ضريبية مبسطة</div>' +
-            '<div class="title" style="font-size:16px;background:transparent;">Simplified Tax Invoice</div>' +
-            // Invoice Info
-            '<div class="info-grid">' +
-            '<div><span class="label">رقم الفاتورة:</span> ' + invoiceNumber + '</div>' +
-            '<div><span class="label">التاريخ:</span> ' + dateStr + ' ' + timeStr + '</div>' +
-            '<div><span class="label">نوع الدفع:</span> ' + paymentMethod + '</div>' +
-            '<div><span class="label">رقم اللوحة:</span> ' + plate + '</div>' +
-            '<div><span class="label">المستفيد:</span> ' + customerName + (customerPhone ? ' (' + customerPhone + ')' : '') + '</div>' +
-            '<div><span class="label">الموظف:</span> ' + (currentUser.name || currentUser.username || '') + '</div>' +
-            '</div>' +
-            // Items Table
-            '<table class="table">' +
-            '<thead><tr>' +
-            '<th>#</th>' +
-            '<th>المنتج / الخدمة</th>' +
-            '<th>الكمية</th>' +
-            '<th>السعر</th>' +
-            '<th>الخصم</th>' +
-            '<th>الضريبة 15%</th>' +
-            '<th>الإجمالي</th>' +
-            '</tr></thead>' +
-            '<tbody>' +
-            '<tr>' +
-            '<td>1</td>' +
-            '<td>' + service + '</td>' +
-            '<td>1</td>' +
-            '<td>' + amount.toFixed(2) + '</td>' +
-            '<td>' + (discount > 0 ? discount.toFixed(2) : '0.00') + '</td>' +
-            '<td>' + vatAmount.toFixed(2) + '</td>' +
-            '<td>' + totalAmount.toFixed(2) + '</td>' +
-            '</tr>' +
-            '</tbody></table>' +
-            // Totals
-            '<div class="totals">' +
-            '<div class="row"><span>إجمالي السعر</span><span>' + amount.toFixed(2) + ' ريال</span></div>' +
-            (discount > 0 ? '<div class="row"><span>إجمالي الخصم</span><span>' + discount.toFixed(2) + ' ريال</span></div>' : '') +
-            '<div class="row"><span>المبلغ غير شامل الضريبة</span><span>' + netAmount.toFixed(2) + ' ريال</span></div>' +
-            '<div class="row"><span>ضريبة القيمة المضافة (15%)</span><span>' + vatAmount.toFixed(2) + ' ريال</span></div>' +
-            '<div class="row grand-total"><span>المبلغ شامل الضريبة</span><span>' + totalAmount.toFixed(2) + ' ريال</span></div>' +
-            '</div>' +
-            // Declaration
-            '<div class="declaration">' +
-            'أقر أنا الموقع على هذه الفاتورة إنني استلمت كافة البضاعة المدونة بها بحالة سليمة وإنني سأقوم بسداد قيمتها وفي حالة عدم السداد تعتبر هذه الورقة تجارية واجبة الدفع' +
-            '<br><br>' +
-            'I agree that I have received all the goods in which it is properly written and that I will pay for it and in case of non-payment this paper is considered Commercial to be paid' +
-            '</div>' +
-            // Signature
-            '<div class="signature">' +
-            '<div>اسم المستلم: _________________</div>' +
-            '<div>اسم البائع: _________________</div>' +
-            '</div>' +
-            '<div class="signature">' +
-            '<div>توقيع المستلم: _________________</div>' +
-            '<div>توقيع البائع: _________________</div>' +
-            '</div>' +
-            // Footer
-            '<div class="footer">' +
-            (config.invoiceFooter || 'شكراً لتعاملكم معنا') +
-            '<br>📍 ' + address + ' | 📞 ' + phone +
-            '</div>' +
-            '</div>' +
-            '<script>setTimeout(function(){ window.print(); }, 800);<\/script>' +
-            '</body></html>'
-        );
-        win.document.close();
-
-        this.closePrintOptions();
+        if (modal) modal.classList.add('hidden');
     };
 
     // ===== 语音播报 =====
     window.CashierModule.voiceTotal = function() {
-        var total = this.el.total ? this.el.total.textContent : '0 SAR';
-        var msg = new SpeechSynthesisUtterance('总计 ' + total);
+        var total = this.el.cartTotal ? this.el.cartTotal.textContent : '0 SAR';
+        var msg = new SpeechSynthesisUtterance('收款成功，总计 ' + total);
         msg.lang = 'zh-CN';
         window.speechSynthesis.speak(msg);
     };
 
-    // ===== 清空订单 =====
-    window.CashierModule.clearOrder = function() {
-        if (this.el.plate) this.el.plate.value = '';
-        if (this.el.amount) this.el.amount.value = '';
-        if (this.el.discountInput) this.el.discountInput.value = '0';
-        if (this.el.customerInfo) this.el.customerInfo.classList.add('hidden');
-        if (this.el.customer) this.el.customer.value = '';
-        this.selectedCustomer = null;
-        this.updatePrice();
-        this.toast('🗑️ 已清空', 'info');
+    // ===== 占位方法 =====
+    window.CashierModule.editCustomer = function() {
+        this.toast('✏️ 编辑客户功能开发中', 'info');
     };
 
-    console.log('[Cashier] V6 模块已注册');
+    window.CashierModule.addVehicle = function() {
+        this.toast('🚗 添加车辆功能开发中', 'info');
+    };
+
+    window.CashierModule.recharge = function() {
+        this.toast('💰 充值功能开发中', 'info');
+    };
+
+    window.CashierModule.scanQR = function() {
+        this.toast('📱 扫码功能开发中', 'info');
+    };
+
+    console.log('[Cashier] V7 模块已注册');
 })();
