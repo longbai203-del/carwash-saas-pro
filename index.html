@@ -89,64 +89,13 @@
 
 <!-- ===== 主应用 ===== -->
 <div id="appContainer" class="hidden flex h-screen overflow-hidden">
-    <aside class="w-64 bg-white shadow-xl z-20 flex flex-col border-r border-gray-100">
-        <div class="p-5 border-b border-gray-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
-                <i class="fas fa-car-wash text-white text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold text-blue-600">CarWash Pro</h1>
-                <p class="text-xs text-gray-400" id="userRoleDisplay">☁️ 实时同步</p>
-            </div>
-        </div>
-
-        <div class="px-4 py-3 border-b border-gray-100">
-            <label class="text-xs text-gray-400 block mb-1">🏪 当前门店</label>
-            <select id="branchSelector" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
-                <option value="all">全部门店</option>
-            </select>
-        </div>
-
-        <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1" id="mainNav">
-            <a href="#" data-module="dashboard" class="sidebar-link nav-item-active"><i class="fas fa-chart-line w-5"></i><span>仪表板</span></a>
-            <a href="#" data-module="cashier" class="sidebar-link" id="navCashier"><i class="fas fa-cash-register w-5"></i><span>POS / 收银</span></a>
-            <a href="#" data-module="orders" class="sidebar-link" id="navOrders"><i class="fas fa-clipboard-list w-5"></i><span>订单管理</span></a>
-            <a href="#" data-module="inventory" class="sidebar-link" id="navInventory"><i class="fas fa-boxes w-5"></i><span>库存</span></a>
-            <a href="#" data-module="customers" class="sidebar-link" id="navCustomers"><i class="fas fa-users w-5"></i><span>客户</span></a>
-            <a href="#" data-module="reports" class="sidebar-link" id="navReports"><i class="fas fa-chart-bar w-5"></i><span>财务</span></a>
-            <a href="#" data-module="attendance" class="sidebar-link" id="navAttendance"><i class="fas fa-clock w-5"></i><span>考勤</span></a>
-            <a href="#" data-module="employees" class="sidebar-link" id="navEmployees"><i class="fas fa-user-tie w-5"></i><span>员工审核</span></a>
-            <a href="#" data-module="audit" class="sidebar-link" id="navAudit"><i class="fas fa-history w-5"></i><span>审计日志</span></a>
-            <a href="#" data-module="settings" class="sidebar-link" id="navSettings"><i class="fas fa-cog w-5"></i><span>设置</span></a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-100">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-cloud text-blue-500 text-xl"></i>
-                    <div>
-                        <p class="text-xs text-gray-400">同步状态</p>
-                        <p class="text-sm font-semibold" id="syncStatusText">🟢 在线</p>
-                    </div>
-                </div>
-                <span class="real-time-badge"><i class="fas fa-bolt"></i> 实时</span>
-            </div>
-            <div class="mt-2 text-xs text-gray-400">
-                <span id="currentUserSpan">未登录</span>
-                <span class="mx-1">·</span>
-                <span id="currentRoleSpan" class="text-gray-500"></span>
-            </div>
-        </div>
+    <aside id="sidebarContainer" class="w-64 bg-white shadow-xl z-20 flex flex-col border-r border-gray-100">
+        <!-- 由 SidebarComponent 渲染 -->
     </aside>
 
     <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
-        <header class="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
-            <h2 id="currentPageTitle" class="text-xl font-bold text-gray-800">仪表板</h2>
-            <div class="flex items-center gap-4">
-                <span class="text-sm text-gray-500 hidden md:inline" id="headerUserInfo">👤 <span id="headerUsername">未登录</span></span>
-                <button onclick="AppAuth.showChangePassword(); document.getElementById('loginModal').style.display='flex'" class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100">🔒 修改密码</button>
-                <button onclick="AppAuth.logout()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">退出</button>
-            </div>
+        <header id="navbarContainer" class="bg-white shadow-sm py-3 px-6 flex justify-between items-center border-b border-gray-100">
+            <!-- 由 NavbarComponent 渲染 -->
         </header>
 
         <main class="flex-1 overflow-y-auto p-6" id="moduleContainer">
@@ -158,42 +107,77 @@
 </div>
 
 <!-- ===== 脚本加载 ===== -->
+<!-- 核心配置 -->
 <script src="js/config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/utils.js"></script>
+
+<!-- 服务层 -->
 <script src="services/supabase.js"></script>
 <script src="js/api.js"></script>
+
+<!-- 认证 -->
 <script src="js/auth.js"></script>
-<script src="js/module-base.js"></script>   <!-- 新增 -->
+
+<!-- 组件（必须按顺序加载） -->
+<script src="components/navbar.js"></script>
+<script src="components/sidebar.js"></script>
+<script src="components/modal.js"></script>
+<script src="components/datatable.js"></script>
+
+<!-- 核心模块 -->
+<script src="js/module-base.js"></script>
 <script src="js/loader.js"></script>
 <script src="js/router.js"></script>
 <script src="js/app.js"></script>
 
+<!-- ===== 启动应用 ===== -->
 <script>
 // ============================================================
 // 启动应用
 // ============================================================
 (async function initApp() {
     // 等待 SupabaseService 初始化
-    for (let i = 0; i < 30; i++) {
+    for (var i = 0; i < 30; i++) {
         if (window.SupabaseService && window.SupabaseService.isReady()) break;
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(function(r) { setTimeout(r, 100); });
     }
 
     // 注册路由
-    AppRouter.init();
+    if (window.AppRouter) {
+        AppRouter.init();
+    }
 
-    const session = localStorage.getItem('cw_session');
+    var session = localStorage.getItem('cw_session');
     if (session) {
         try {
-            const s = JSON.parse(session);
-            const users = await AppApi.query('users', { filter: { id: s.id } });
+            var s = JSON.parse(session);
+            var users = await AppApi.query('users', { filter: { id: s.id } });
             if (users && users.length > 0 && users[0].status === 'approved') {
                 AppStore.set('currentUser', users[0]);
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('appContainer').classList.remove('hidden');
+
+                // 渲染侧边栏
+                if (window.SidebarComponent) {
+                    var sidebarContainer = document.getElementById('sidebarContainer');
+                    if (sidebarContainer) {
+                        SidebarComponent.render(sidebarContainer);
+                    }
+                }
+
+                // 渲染导航栏
+                if (window.NavbarComponent) {
+                    var navbarContainer = document.getElementById('navbarContainer');
+                    if (navbarContainer) {
+                        NavbarComponent.render(navbarContainer);
+                    }
+                }
+
                 await App.init();
-                AppRouter.navigate('dashboard');
+                if (window.AppRouter) {
+                    AppRouter.navigate('dashboard');
+                }
                 return;
             }
         } catch(e) {
