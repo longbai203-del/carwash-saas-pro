@@ -42,6 +42,7 @@
                     return;
                 }
 
+                // 先加载租户和门店
                 var tenants = await AppApi.getTenants();
                 if (tenants && tenants.length > 0) {
                     AppStore.set('currentTenant', tenants[0]);
@@ -129,7 +130,6 @@
             if (headerUser) headerUser.textContent = user.name || user.username || 'Admin';
 
             this.updateBranchSelector();
-            this.updateStoreSelector();
         },
 
         // ===== 更新门店选择器 =====
@@ -231,4 +231,4 @@
     };
 
     console.log('[App] 加载完成');
-});
+})();
