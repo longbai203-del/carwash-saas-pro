@@ -1,0 +1,63 @@
+/**
+ * vehicle-monitor.css - 车辆监控模块样式
+ */
+
+/* ===== 统计卡片动画 ===== */
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.animate-pulse {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* ===== 状态指示器 ===== */
+.status-online {
+    color: #22c55e;
+}
+
+.status-offline {
+    color: #ef4444;
+}
+
+/* ===== 表格滚动 ===== */
+.vehicle-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.vehicle-table-container thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+/* ===== 车辆类型标签 ===== */
+.vehicle-type-sedan { background: #dbeafe; color: #2563eb; }
+.vehicle-type-suv { background: #d1fae5; color: #059669; }
+.vehicle-type-truck { background: #fef3c7; color: #d97706; }
+.vehicle-type-bus { background: #ede9fe; color: #7c3aed; }
+.vehicle-type-motorcycle { background: #fce4ec; color: #dc2626; }
+
+/* ===== 方向标签 ===== */
+.direction-in { color: #16a34a; }
+.direction-out { color: #dc2626; }
+
+/* ===== 在场车辆行 ===== */
+.active-vehicle-row {
+    background: #f0fdf4;
+    border-left: 3px solid #22c55e;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+    .vm-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .vm-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

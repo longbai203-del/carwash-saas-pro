@@ -42,7 +42,6 @@
                     return;
                 }
 
-                // 先加载租户和门店
                 var tenants = await AppApi.getTenants();
                 if (tenants && tenants.length > 0) {
                     AppStore.set('currentTenant', tenants[0]);
@@ -119,7 +118,7 @@
                 el.style.display = perms.indexOf(module) !== -1 ? 'flex' : 'none';
             });
 
-            var roleLabels = { owner: '老板', manager: '店长', cashier: '收银员', employee: '员工' };
+            var roleLabels = { owner: '老板', admin: '系统管理员', manager: '店长', cashier: '收银员', employee: '员工' };
             var roleEl = document.getElementById('userRoleDisplay');
             if (roleEl) roleEl.textContent = (roleLabels[role] || role);
             var roleSpan = document.getElementById('currentRoleSpan');
@@ -232,4 +231,4 @@
     };
 
     console.log('[App] 加载完成');
-})();
+});

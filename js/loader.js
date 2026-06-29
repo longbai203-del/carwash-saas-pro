@@ -1,6 +1,5 @@
 /**
  * loader.js - 模块加载器 V5.2
- * 修复加载状态卡住问题，增强 DOM 查找
  */
 (function() {
     'use strict';
@@ -21,6 +20,7 @@
             reports: { obj: 'ReportsModule', label: '财务管理' },
             employees: { obj: 'EmployeesModule', label: '员工审核' },
             audit: { obj: 'AuditModule', label: '审计日志' },
+            'vehicle-monitor': { obj: 'VehicleMonitorModule', label: '车辆监控' },
             settings: { obj: 'SettingsModule', label: '系统设置' }
         },
 
@@ -48,7 +48,6 @@
                 }
             }
 
-            // 销毁旧模块
             if (this._active && this._loaded[this._active]) {
                 var old = this._loaded[this._active];
                 if (typeof old.destroy === 'function') {
@@ -64,15 +63,12 @@
                 var module = this._modules[moduleName];
                 if (!module) throw new Error('模块未配置: ' + moduleName);
 
-                // 加载 HTML
                 var htmlPath = 'modules/' + moduleName + '/' + moduleName + '.html';
                 var htmlContent = await this._fetchText(htmlPath, 'HTML');
                 container.innerHTML = htmlContent;
 
-                // 等待 DOM 渲染
                 await this._waitForDOM(moduleName);
 
-                // 加载 JS
                 var jsPath = 'modules/' + moduleName + '/' + moduleName + '.js';
                 var oldScript = document.querySelector('script[data-module="' + moduleName + '"]');
                 if (oldScript) oldScript.remove();
@@ -147,7 +143,6 @@
                 var res = await fetch(url.href, { cache: 'no-store' });
                 if (!res.ok) throw new Error(type + '加载失败: HTTP ' + res.status + ' - ' + path);
                 var text = await res.text();
-                // 检查是否为空或只有空白
                 if (!text || !text.trim()) {
                     throw new Error(type + '文件为空: ' + path);
                 }
@@ -166,9 +161,7 @@
                 var maxAttempts = 50;
                 var check = function() {
                     attempts++;
-                    // 先尝试查找 moduleName + 'Container'（如 ordersContainer）
                     var el = document.getElementById(moduleName + 'Container');
-                    // 如果找不到，在 moduleContent 中查找
                     if (!el) {
                         var container = document.getElementById('moduleContent');
                         if (container) {

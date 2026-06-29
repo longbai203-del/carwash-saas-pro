@@ -51,12 +51,18 @@ window.AppConfig = {
         reports: { label: '财务管理', icon: 'fa-chart-bar', permission: 'reports' },
         employees: { label: '员工审核', icon: 'fa-user-tie', permission: 'employees' },
         audit: { label: '审计日志', icon: 'fa-history', permission: 'audit' },
+        'vehicle-monitor': { label: '🚗 车辆监控', icon: 'fa-camera', permission: 'vehicle-monitor' },
         settings: { label: '系统设置', icon: 'fa-cog', permission: 'settings' }
     },
     
     // 角色权限映射
     permissions: {
-        owner: ['dashboard', 'cashier', 'orders', 'inventory', 'customers', 'attendance', 'reports', 'employees', 'audit', 'settings'],
+        owner: ['dashboard', 'cashier', 'orders', 'inventory', 'customers', 
+                'attendance', 'reports', 'employees', 'audit', 'settings', 
+                'vehicle-monitor'],
+        admin: ['dashboard', 'cashier', 'orders', 'inventory', 'customers', 
+                'attendance', 'reports', 'employees', 'audit', 'settings',
+                'vehicle-monitor'],
         manager: ['dashboard', 'cashier', 'orders', 'inventory', 'customers', 'attendance', 'reports'],
         cashier: ['dashboard', 'cashier', 'customers'],
         employee: ['dashboard', 'attendance']
