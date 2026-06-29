@@ -2,6 +2,8 @@
  * vehicle-monitor.js - 车辆监控模块
  * 功能：车辆进出记录、停留时间追踪、实时计数
  * 权限：仅老板(owner)和系统管理员(admin)可访问
+ * 
+ * 注意：此模块完全独立，不修改任何原有框架代码
  */
 (function() {
     'use strict';
@@ -24,7 +26,7 @@
 
     // ===== 缓存 DOM =====
     window.VehicleMonitorModule.cacheDom = function() {
-        // 权限检查
+        // 权限检查 - 无权限时显示提示
         if (!checkPermission()) {
             var container = document.getElementById('moduleContent');
             if (container) {
@@ -64,7 +66,6 @@
             detailContent: this.getEl('vmDetailContent')
         };
 
-        // 设置默认日期
         if (this.el.dateFilter) {
             this.el.dateFilter.value = new Date().toISOString().split('T')[0];
         }
@@ -79,7 +80,6 @@
                 if (e.key === 'Enter') {
                     var plate = this.value.trim().toUpperCase();
                     if (plate) {
-                        // 检查是否已进入
                         var existing = self.activeVehicles.find(function(v) {
                             return v.plate === plate && !v.exit_time;
                         });
@@ -109,7 +109,6 @@
     // ===== 加载数据 =====
     window.VehicleMonitorModule.loadData = function() {
         if (!checkPermission()) return;
-
         this.loadRecords();
         this.loadActiveVehicles();
         this.updateStats();
@@ -130,20 +129,25 @@
         var self = this;
         var today = new Date().toISOString().split('T')[0];
 
-        AppApi.query('vehicle_records', {
-            filter: { date: today },
-            order: { by: 'entry_time', ascending: false },
-            limit: 200
-        }).then(function(data) {
-            self.records = data || [];
-            self.renderRecords(data || []);
-            if (self.el.recordCount) {
-                self.el.recordCount.textContent = (data || []).length;
-            }
-        }).catch(function(error) {
-            // 如果表不存在，使用本地存储
+        // 尝试从数据库加载
+        if (window.AppApi && AppApi.query) {
+            AppApi.query('vehicle_records', {
+                filter: { date: today },
+                order: { by: 'entry_time', ascending: false },
+                limit: 200
+            }).then(function(data) {
+                self.records = data || [];
+                self.renderRecords(data || []);
+                if (self.el.recordCount) {
+                    self.el.recordCount.textContent = (data || []).length;
+                }
+                self.updateStats();
+            }).catch(function() {
+                self.loadLocalRecords();
+            });
+        } else {
             self.loadLocalRecords();
-        });
+        }
     };
 
     // ===== 加载当前在场车辆 =====
@@ -151,15 +155,19 @@
         var self = this;
         var today = new Date().toISOString().split('T')[0];
 
-        AppApi.query('vehicle_records', {
-            filter: { date: today, exit_time: null },
-            order: { by: 'entry_time', ascending: false }
-        }).then(function(data) {
-            self.activeVehicles = data || [];
-            self.renderActiveVehicles(data || []);
-        }).catch(function() {
+        if (window.AppApi && AppApi.query) {
+            AppApi.query('vehicle_records', {
+                filter: { date: today, exit_time: null },
+                order: { by: 'entry_time', ascending: false }
+            }).then(function(data) {
+                self.activeVehicles = data || [];
+                self.renderActiveVehicles(data || []);
+            }).catch(function() {
+                self.loadLocalActiveVehicles();
+            });
+        } else {
             self.loadLocalActiveVehicles();
-        });
+        }
     };
 
     // ===== 本地存储（备用方案）=====
@@ -171,6 +179,7 @@
         if (this.el.recordCount) {
             this.el.recordCount.textContent = this.records.length;
         }
+        this.updateStats();
     };
 
     window.VehicleMonitorModule.loadLocalActiveVehicles = function() {
@@ -185,7 +194,6 @@
     // ===== 保存到本地 =====
     window.VehicleMonitorModule.saveToLocal = function() {
         var all = JSON.parse(localStorage.getItem('vehicle_records') || '[]');
-        // 合并
         this.records.forEach(function(r) {
             var existing = all.findIndex(function(a) { return a.id === r.id; });
             if (existing >= 0) {
@@ -204,6 +212,9 @@
 
         if (!vehicles || vehicles.length === 0) {
             list.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 py-4">暂无车辆在场</td></tr>';
+            if (this.el.currentlyInside) {
+                this.el.currentlyInside.textContent = '0';
+            }
             return;
         }
 
@@ -212,7 +223,7 @@
         vehicles.forEach(function(v, index) {
             var entryTime = new Date(v.entry_time);
             var now = new Date();
-            var duration = Math.floor((now - entryTime) / 1000 / 60); // 分钟
+            var duration = Math.floor((now - entryTime) / 1000 / 60);
 
             var typeLabels = {
                 sedan: '🚗 轿车',
@@ -239,7 +250,6 @@
 
         list.innerHTML = html;
 
-        // 更新当前在场数量
         if (this.el.currentlyInside) {
             this.el.currentlyInside.textContent = vehicles.length;
         }
@@ -274,15 +284,12 @@
         var html = '';
         records.slice(0, 50).forEach(function(r) {
             var time = r.entry_time ? new Date(r.entry_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-';
-            var exitTime = r.exit_time ? new Date(r.exit_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-';
-            var duration = r.duration_minutes || '';
-
             html += '<tr class="border-b hover:bg-gray-50">';
             html += '<td class="p-2 text-sm">' + time + '</td>';
             html += '<td class="p-2 font-medium">' + (r.plate || 'N/A') + '</td>';
             html += '<td class="p-2">' + (typeLabels[r.vehicle_type] || '🚗 轿车') + '</td>';
             html += '<td class="p-2 ' + (directionColors[r.direction] || '') + '">' + (directionLabels[r.direction] || r.direction) + '</td>';
-            html += '<td class="p-2">' + (r.direction === 'out' ? this.formatDuration(duration) : '-') + '</td>';
+            html += '<td class="p-2">' + (r.direction === 'out' ? this.formatDuration(r.duration_minutes) : '-') + '</td>';
             html += '<td class="p-2 text-sm text-gray-400">' + (r.note || '') + '</td>';
             html += '</tr>';
         }.bind(this));
@@ -293,13 +300,10 @@
     // ===== 更新统计 =====
     window.VehicleMonitorModule.updateStats = function() {
         var records = this.records || [];
-        var today = new Date().toISOString().split('T')[0];
-
         var totalIn = records.filter(function(r) { return r.direction === 'in'; }).length;
         var totalOut = records.filter(function(r) { return r.direction === 'out'; }).length;
         var total = totalIn + totalOut;
 
-        // 计算平均停留时间
         var completed = records.filter(function(r) {
             return r.direction === 'out' && r.duration_minutes;
         });
@@ -309,10 +313,7 @@
             avgDuration = Math.round(sum / completed.length);
         }
 
-        // 当前在场 = 总进入 - 总离开
         var currentlyInside = totalIn - totalOut;
-
-        // 计算占比
         var inRate = total > 0 ? Math.round(totalIn / total * 100) : 0;
         var outRate = total > 0 ? Math.round(totalOut / total * 100) : 0;
 
@@ -343,7 +344,6 @@
             return;
         }
 
-        // 检查是否已在场
         var existing = this.activeVehicles.find(function(v) {
             return v.plate === plate && !v.exit_time;
         });
@@ -376,19 +376,17 @@
             created_at: now.toISOString()
         };
 
-        // 保存到本地
         this.records.push(record);
         this.activeVehicles.push(record);
         this.saveToLocal();
 
         // 尝试保存到数据库
-        AppApi.insert('vehicle_records', record).catch(function() {
-            // 如果表不存在，忽略错误
-        });
+        if (window.AppApi && AppApi.insert) {
+            AppApi.insert('vehicle_records', record).catch(function() {});
+        }
 
         this.toast('📥 车辆 ' + (record.plate) + ' 已进入', 'success');
 
-        // 清空输入
         if (this.el.plateInput) this.el.plateInput.value = '';
         if (this.el.noteInput) this.el.noteInput.value = '';
         if (this.el.vehicleType) this.el.vehicleType.value = 'sedan';
@@ -410,7 +408,6 @@
     window.VehicleMonitorModule.quickExit = function(plate) {
         var self = this;
 
-        // 查找在场车辆
         var index = this.activeVehicles.findIndex(function(v) {
             return v.plate === plate && !v.exit_time;
         });
@@ -425,27 +422,25 @@
         var entryTime = new Date(vehicle.entry_time);
         var duration = Math.floor((now - entryTime) / 1000 / 60);
 
-        // 更新记录
         vehicle.exit_time = now.toISOString();
         vehicle.duration_minutes = duration;
 
-        // 从活跃列表移除
         this.activeVehicles.splice(index, 1);
 
-        // 更新记录列表
         var recordIndex = this.records.findIndex(function(r) { return r.id === vehicle.id; });
         if (recordIndex >= 0) {
             this.records[recordIndex] = vehicle;
         }
 
-        // 保存到本地
         this.saveToLocal();
 
         // 尝试更新数据库
-        AppApi.update('vehicle_records', vehicle.id, {
-            exit_time: vehicle.exit_time,
-            duration_minutes: duration
-        }).catch(function() {});
+        if (window.AppApi && AppApi.update) {
+            AppApi.update('vehicle_records', vehicle.id, {
+                exit_time: vehicle.exit_time,
+                duration_minutes: duration
+            }).catch(function() {});
+        }
 
         this.toast('📤 车辆 ' + plate + ' 已离开，停留 ' + this.formatDuration(duration), 'success');
 
@@ -581,7 +576,7 @@
         this.autoUpdateInterval = setInterval(function() {
             this.loadActiveVehicles();
             this.updateStats();
-        }.bind(this), 30000); // 每30秒更新一次
+        }.bind(this), 30000);
     };
 
     console.log('[VehicleMonitor] 模块已注册');
