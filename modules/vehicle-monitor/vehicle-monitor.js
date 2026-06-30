@@ -71,6 +71,7 @@
             // ===== 新增：识别相关 DOM =====
             uploadPlaceholder: this.getEl('uploadPlaceholder'),
             imageInput: this.getEl('imageInput'),
+            cameraInput: this.getEl('cameraInput'),
             imagePreviewContainer: this.getEl('imagePreviewContainer'),
             imagePreview: this.getEl('imagePreview'),
             recognizeLoading: this.getEl('recognizeLoading'),
@@ -623,19 +624,43 @@
     // ===== 新增：车牌智能识别功能 =====
     // ================================================================
 
-    // ===== 处理图片选择 =====
-    window.VehicleMonitorModule.handleImageSelect = function(event) {
+    // ===== 拍照（调用手机相机） =====
+    window.VehicleMonitorModule.takePhoto = function() {
+        var input = document.getElementById('cameraInput');
+        if (input) {
+            // 触发相机
+            input.click();
+        } else {
+            // 备用方案：使用 imageInput 并设置 capture
+            var backupInput = document.getElementById('imageInput');
+            if (backupInput) {
+                backupInput.setAttribute('capture', 'environment');
+                backupInput.click();
+            } else {
+                this.toast('❌ 无法打开相机', 'error');
+            }
+        }
+    };
+
+    // ===== 处理相机拍照 =====
+    window.VehicleMonitorModule.handleCameraCapture = function(event) {
         var file = event.target.files[0];
         if (!file) return;
         this.processImage(file);
+        // 重置以便下次使用
+        event.target.value = '';
     };
 
-    // ===== 拍照 =====
-    window.VehicleMonitorModule.takePhoto = function() {
-        var input = this.el.imageInput;
+    // ===== 处理图片选择（上传） =====
+    window.VehicleMonitorModule.handleImageSelect = function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        // 移除 capture 属性，以便下次上传时不会强制打开相机
+        var input = document.getElementById('imageInput');
         if (input) {
-            input.click();
+            input.removeAttribute('capture');
         }
+        this.processImage(file);
     };
 
     // ===== 处理图片 =====
@@ -677,11 +702,12 @@
         this.el.uploadPlaceholder.classList.remove('hidden');
         this.el.recognizeLoading.classList.add('hidden');
         this.el.imageInput.value = '';
+        this.el.cameraInput.value = '';
         this.el.recogStatus.textContent = '等待识别...';
         this.el.recogStatus.className = 'text-xs text-gray-400';
     };
 
-    // ===== 调用识别API（模拟 + 真实API预留） =====
+    // ===== 调用识别API =====
     window.VehicleMonitorModule.callRecognizeAPI = function(imageData) {
         var self = this;
 
@@ -803,14 +829,13 @@
             duration_minutes: null
         };
 
-        // 保存到数据库（使用 vehicle_records 表）
+        // 保存到数据库
         if (window.AppApi && AppApi.insert) {
             AppApi.insert('vehicle_records', data)
                 .then(function(saved) {
                     self.toast('✅ 车辆记录已保存', 'success');
                     self.clearRecognition();
                     self.refresh();
-                    // 审计日志
                     if (window.PermissionService) {
                         PermissionService.logAudit({
                             action: 'CREATE',
@@ -876,6 +901,9 @@
         this._isEditMode = false;
         if (this.el.imageInput) {
             this.el.imageInput.value = '';
+        }
+        if (this.el.cameraInput) {
+            this.el.cameraInput.value = '';
         }
     };
 
