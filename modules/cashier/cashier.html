@@ -1,237 +1,272 @@
-<div id="cashierContainer" class="h-full">
-    
-    <!-- ===== 三栏布局 ===== -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-        
-        <!-- ===== 左侧：客户信息 (3/12) ===== -->
-        <div class="lg:col-span-3">
-            <div class="glass-card p-4 h-full">
+<div id="cashierContainer" class="h-full flex flex-col gap-3">
+
+    <!-- ===== 顶部栏 ===== -->
+    <div class="glass-card p-3">
+        <div class="flex items-center gap-3 flex-wrap">
+            <!-- 门店 -->
+            <div class="flex items-center gap-1 text-sm">
+                <span class="text-gray-400">🏪</span>
+                <select id="posStoreSelect" class="border-none bg-transparent text-sm font-medium focus:outline-none">
+                    <option value="main">总部店</option>
+                </select>
+            </div>
+            <span class="text-gray-300">|</span>
+            <!-- 收银员 -->
+            <span class="text-sm text-gray-600">👤 <span id="posCashierName">系统管理员</span></span>
+            <span class="text-gray-300">|</span>
+            <!-- 班次 -->
+            <select id="posShiftSelect" class="border rounded-lg text-xs px-2 py-1 bg-gray-50">
+                <option value="morning">🌅 早班 (08:00-14:00)</option>
+                <option value="afternoon">🌇 中班 (14:00-20:00)</option>
+                <option value="night">🌙 晚班 (20:00-02:00)</option>
+            </select>
+            <span class="text-gray-300">|</span>
+            <!-- 快速搜索 -->
+            <div class="flex-1 min-w-[200px] relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input id="posQuickSearch" placeholder="🔍 车牌 / 手机 / 会员卡" 
+                       class="w-full pl-8 pr-3 py-2 border rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-blue-400">
+            </div>
+            <!-- 扫码 -->
+            <button onclick="CashierModule.scanQR()" class="bg-purple-100 hover:bg-purple-200 text-purple-600 px-3 py-2 rounded-xl text-sm">
+                <i class="fas fa-qrcode"></i> 扫码
+            </button>
+            <!-- 状态 -->
+            <span class="text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full" id="cashierStatus">🟢 在线</span>
+        </div>
+    </div>
+
+    <!-- ===== 三栏主体 ===== -->
+    <div class="flex-1 grid grid-cols-12 gap-3 min-h-[500px]">
+
+        <!-- ===== 左侧：客户区 (3/12) ===== -->
+        <div class="col-span-3 glass-card p-4 flex flex-col">
+            <div class="flex-1 overflow-y-auto space-y-3">
                 
-                <!-- 搜索区 -->
-                <div class="mb-4">
-                    <div class="relative">
-                        <input id="posSearch" placeholder="🔍 车牌 / 手机 / 会员卡" 
-                               class="w-full p-3 border rounded-xl bg-gray-50 text-sm focus:outline-none focus:border-blue-400">
-                        <button onclick="CashierModule.quickSearch()" 
-                                class="absolute right-2 top-2 bg-blue-600 text-white px-3 py-1 rounded-lg text-xs">
-                            查询
-                        </button>
+                <!-- 车牌搜索 -->
+                <div>
+                    <label class="text-xs font-medium text-gray-500">🚗 车牌</label>
+                    <div class="flex gap-1 mt-1">
+                        <input id="posPlate" placeholder="输入车牌" 
+                               class="flex-1 p-2 border rounded-lg text-sm uppercase bg-gray-50 focus:outline-none focus:border-blue-400">
+                        <button onclick="CashierModule.searchPlate()" class="btn-primary text-xs px-3 py-2 rounded-lg">查</button>
                     </div>
                 </div>
 
+                <!-- 手机号 -->
+                <div>
+                    <label class="text-xs font-medium text-gray-500">📱 手机号</label>
+                    <input id="posPhone" placeholder="输入手机号" 
+                           class="w-full mt-1 p-2 border rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-400">
+                </div>
+
                 <!-- 客户信息卡片 -->
-                <div id="customerCard" class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 mb-4 hidden">
+                <div id="customerCard" class="hidden bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-3">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h4 class="font-bold text-gray-800" id="custDisplayName">-</h4>
+                            <h4 class="font-bold text-gray-800 text-sm" id="custDisplayName">-</h4>
                             <p class="text-xs text-gray-500" id="custDisplayPhone">-</p>
                             <p class="text-xs text-gray-500">🚗 <span id="custDisplayPlate">-</span></p>
                         </div>
-                        <span class="customer-level" id="custDisplayLevel">普通</span>
+                        <span class="customer-level text-xs" id="custDisplayLevel">普通</span>
                     </div>
                     <div class="flex gap-3 mt-2 text-xs">
                         <span>💰 <span id="custDisplayBalance" class="font-bold text-green-600">0 SAR</span></span>
                         <span>⭐ <span id="custDisplayPoints" class="font-bold text-amber-600">0</span></span>
                         <span>📅 <span id="custDisplayVisits" class="font-bold text-blue-600">0</span></span>
                     </div>
-                    <div class="flex gap-2 mt-3">
-                        <button onclick="CashierModule.editCustomer()" class="text-xs bg-white px-3 py-1 rounded-lg shadow-sm hover:shadow">✏️ 编辑</button>
-                        <button onclick="CashierModule.addVehicle()" class="text-xs bg-white px-3 py-1 rounded-lg shadow-sm hover:shadow">🚗 加车</button>
+                    <div class="text-xs mt-1">
+                        <span class="text-gray-500">套餐:</span>
+                        <span id="custDisplayPackage" class="font-medium text-blue-600">-</span>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="CashierModule.editCustomer()" class="text-xs bg-white px-3 py-1 rounded-lg shadow-sm">✏️ 编辑</button>
                         <button onclick="CashierModule.recharge()" class="text-xs bg-green-100 px-3 py-1 rounded-lg hover:bg-green-200">💰 充值</button>
                     </div>
                 </div>
 
-                <!-- 车辆信息 -->
-                <div id="vehicleCard" class="bg-gray-50 rounded-xl p-3 mb-4 hidden">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="font-bold text-sm">🚗 <span id="vehicleDisplayPlate">-</span></span>
-                            <span class="text-xs text-gray-400 ml-2" id="vehicleDisplayModel">-</span>
-                        </div>
-                        <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full" id="vehicleDisplayStatus">正常</span>
-                    </div>
-                    <div class="text-xs text-gray-400 mt-1">
-                        上次服务: <span id="vehicleLastService">-</span>
-                    </div>
+                <!-- 最近洗车 -->
+                <div id="lastVisitCard" class="hidden bg-gray-50 rounded-xl p-2 text-xs">
+                    <span class="text-gray-400">📅 最近洗车:</span>
+                    <span id="custLastVisit" class="font-medium text-gray-600">-</span>
                 </div>
 
-                <!-- 快捷操作 -->
-                <div class="border-t pt-3">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="CashierModule.quickNewCustomer()" class="text-xs bg-blue-50 hover:bg-blue-100 py-2 rounded-lg text-blue-600">
-                            👤 新客户
-                        </button>
-                        <button onclick="CashierModule.scanQR()" class="text-xs bg-purple-50 hover:bg-purple-100 py-2 rounded-lg text-purple-600">
-                            📱 扫码
-                        </button>
+                <!-- 车辆照片 -->
+                <div id="vehiclePhotoCard" class="hidden">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500">📸 车辆照片</span>
+                        <button onclick="CashierModule.takeVehiclePhoto()" class="text-xs bg-blue-50 px-2 py-1 rounded-lg text-blue-600">拍照</button>
                     </div>
+                    <div id="vehiclePhotoPreview" class="flex gap-1 flex-wrap mt-1"></div>
                 </div>
             </div>
         </div>
 
         <!-- ===== 中间：服务选择 (5/12) ===== -->
-        <div class="lg:col-span-5">
-            <div class="glass-card p-4 h-full">
-                
-                <!-- 服务分类标签 -->
-                <div class="flex gap-1 mb-3 overflow-x-auto">
-                    <button class="tab-btn active text-xs px-3 py-1.5" data-cat="all" onclick="CashierModule.filterServices('all')">全部</button>
-                    <button class="tab-btn text-xs px-3 py-1.5" data-cat="wash" onclick="CashierModule.filterServices('wash')">🧽 洗车</button>
-                    <button class="tab-btn text-xs px-3 py-1.5" data-cat="detail" onclick="CashierModule.filterServices('detail')">✨ 美容</button>
-                    <button class="tab-btn text-xs px-3 py-1.5" data-cat="package" onclick="CashierModule.filterServices('package')">📦 套餐</button>
-                    <button class="tab-btn text-xs px-3 py-1.5" data-cat="product" onclick="CashierModule.filterServices('product')">🛒 商品</button>
+        <div class="col-span-5 glass-card p-4 flex flex-col">
+            
+            <!-- 最近使用 -->
+            <div class="mb-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-medium text-gray-500">⭐ 最近使用</span>
+                    <span class="text-[10px] text-gray-400">点击快速添加</span>
                 </div>
+                <div id="recentServices" class="flex gap-1 flex-wrap mt-1"></div>
+            </div>
 
-                <!-- 搜索服务 -->
-                <div class="mb-3">
-                    <input id="serviceSearch" placeholder="🔍 搜索服务 / 商品..." 
-                           class="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-400"
-                           oninput="CashierModule.filterServices()">
-                </div>
+            <!-- 服务分类标签 -->
+            <div class="flex gap-1 mb-2 overflow-x-auto pb-1">
+                <button class="tab-btn active text-xs px-3 py-1.5 rounded-lg" data-cat="all" onclick="CashierModule.filterServices('all')">全部</button>
+                <button class="tab-btn text-xs px-3 py-1.5 rounded-lg" data-cat="wash" onclick="CashierModule.filterServices('wash')">🧽 洗车</button>
+                <button class="tab-btn text-xs px-3 py-1.5 rounded-lg" data-cat="detail" onclick="CashierModule.filterServices('detail')">✨ 美容</button>
+                <button class="tab-btn text-xs px-3 py-1.5 rounded-lg" data-cat="package" onclick="CashierModule.filterServices('package')">📦 套餐</button>
+                <button class="tab-btn text-xs px-3 py-1.5 rounded-lg" data-cat="product" onclick="CashierModule.filterServices('product')">🛒 商品</button>
+            </div>
 
-                <!-- 服务列表 -->
-                <div class="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto" id="serviceGrid">
+            <!-- 搜索服务 -->
+            <div class="mb-2">
+                <input id="serviceSearch" placeholder="🔍 搜索服务 / 商品..." 
+                       class="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-400"
+                       oninput="CashierModule.renderServices()">
+            </div>
+
+            <!-- 服务网格 -->
+            <div class="flex-1 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-2" id="serviceGrid">
                     <!-- 由 JS 动态渲染 -->
                 </div>
-
-                <!-- 最近使用 -->
-                <div class="mt-3 border-t pt-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-medium text-gray-500">🕐 最近使用</span>
-                        <span class="text-xs text-gray-400">点击快速添加</span>
-                    </div>
-                    <div class="flex gap-1 flex-wrap" id="recentServices"></div>
-                </div>
             </div>
         </div>
 
-        <!-- ===== 右侧：结算面板 (4/12) ===== -->
-        <div class="lg:col-span-4">
-            <div class="glass-card p-4 h-full flex flex-col">
-                
-                <!-- 购物车列表 -->
-                <div class="flex-1 overflow-y-auto max-h-[300px]">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-sm text-gray-700">🛒 购物车</span>
+        <!-- ===== 右侧：购物车 & 结算 (4/12) ===== -->
+        <div class="col-span-4 glass-card p-4 flex flex-col">
+            
+            <!-- 购物车列表 -->
+            <div class="flex-1 overflow-y-auto">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-sm text-gray-700">🛒 购物车</span>
+                    <div class="flex gap-2">
+                        <button onclick="CashierModule.holdCart()" class="text-xs bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg text-amber-600">📌 挂单</button>
                         <button onclick="CashierModule.clearCart()" class="text-xs text-red-500 hover:underline">清空</button>
                     </div>
-                    <div id="cartItems" class="space-y-1">
-                        <div class="text-center text-gray-400 py-8 text-sm">请选择服务或商品</div>
-                    </div>
                 </div>
-
-                <!-- 优惠券 -->
-                <div class="mt-2">
-                    <div class="flex gap-2">
-                        <input id="couponInput" placeholder="🎫 优惠券码" 
-                               class="flex-1 p-2 border rounded-lg text-sm bg-gray-50">
-                        <button onclick="CashierModule.applyCoupon()" class="btn-primary text-xs px-3 py-2 rounded-lg">应用</button>
-                    </div>
-                    <div id="couponDisplay" class="hidden mt-1 text-xs text-green-600"></div>
+                <div id="cartItems" class="space-y-1">
+                    <div class="text-center text-gray-400 py-8 text-sm">请选择服务</div>
                 </div>
+            </div>
 
-                <!-- 结算明细 -->
-                <div class="border-t mt-3 pt-3 space-y-1 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">小计</span>
-                        <span id="cartSubtotal" class="font-mono">0.00 SAR</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">折扣</span>
-                        <span id="cartDiscount" class="font-mono text-green-600">0.00 SAR</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">增值税 (15%)</span>
-                        <span id="cartVat" class="font-mono text-amber-600">0.00 SAR</span>
-                    </div>
-                    <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t">
-                        <span>总计</span>
-                        <span id="cartTotal">0.00 SAR</span>
-                    </div>
+            <!-- 结算明细 -->
+            <div class="border-t pt-3 space-y-1 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">小计</span>
+                    <span id="cartSubtotal" class="font-mono">0.00 SAR</span>
                 </div>
-
-                <!-- 支付方式 -->
-                <div class="mt-3">
-                    <span class="text-xs font-medium text-gray-500 block mb-1">💳 支付方式</span>
-                    <div class="grid grid-cols-3 gap-1">
-                        <button onclick="CashierModule.selectPayment('cash')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="cash">
-                            💰 现金
-                        </button>
-                        <button onclick="CashierModule.selectPayment('mada')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="mada">
-                            🇸🇦 mada
-                        </button>
-                        <button onclick="CashierModule.selectPayment('card')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="card">
-                            💳 卡
-                        </button>
-                        <button onclick="CashierModule.selectPayment('apple_pay')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="apple_pay">
-                            📱 Apple Pay
-                        </button>
-                        <button onclick="CashierModule.selectPayment('stc_pay')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="stc_pay">
-                            📱 STC Pay
-                        </button>
-                        <button onclick="CashierModule.selectPayment('wallet')" 
-                                class="payment-btn py-2 rounded-lg text-xs font-medium border bg-white hover:bg-gray-50" data-payment="wallet">
-                            👛 钱包
-                        </button>
-                    </div>
-                    <div id="selectedPayment" class="text-xs text-blue-600 mt-1 text-center">请选择支付方式</div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">折扣</span>
+                    <span id="cartDiscount" class="font-mono text-green-600">0.00 SAR</span>
                 </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">增值税 (15%)</span>
+                    <span id="cartVat" class="font-mono text-amber-600">0.00 SAR</span>
+                </div>
+                <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t">
+                    <span>总计</span>
+                    <span id="cartTotal">0.00 SAR</span>
+                </div>
+            </div>
 
-                <!-- 操作按钮 -->
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                    <button onclick="CashierModule.checkout()" class="btn-success py-3 rounded-xl font-bold text-sm">
-                        <i class="fas fa-check"></i> 收款
+            <!-- 优惠券/积分 -->
+            <div class="flex gap-2 mt-2">
+                <input id="couponInput" placeholder="🎫 优惠券" 
+                       class="flex-1 p-1.5 border rounded-lg text-xs bg-gray-50">
+                <button onclick="CashierModule.applyCoupon()" class="btn-primary text-xs px-3 py-1.5 rounded-lg">应用</button>
+                <button onclick="CashierModule.usePoints()" class="btn-outline text-xs px-3 py-1.5 rounded-lg">⭐ 积分</button>
+            </div>
+
+            <!-- 支付方式（大按钮） -->
+            <div class="mt-3">
+                <span class="text-xs font-medium text-gray-500 block mb-1">💳 支付方式</span>
+                <div class="grid grid-cols-5 gap-1">
+                    <button onclick="CashierModule.selectPayment('cash')" 
+                            class="payment-btn py-2 rounded-lg text-xs font-bold border bg-white hover:bg-gray-50" data-payment="cash">
+                        💰现金
                     </button>
-                    <button onclick="CashierModule.showPrintOptions()" class="bg-purple-600 hover:bg-purple-700 py-3 rounded-xl text-white font-bold text-sm">
-                        <i class="fas fa-print"></i> 打印
+                    <button onclick="CashierModule.selectPayment('mada')" 
+                            class="payment-btn py-2 rounded-lg text-xs font-bold border bg-white hover:bg-gray-50" data-payment="mada">
+                        🇸🇦mada
                     </button>
-                    <button onclick="CashierModule.holdCart()" class="bg-amber-500 hover:bg-amber-600 py-2 rounded-lg text-white font-bold text-xs col-span-2">
-                        <i class="fas fa-bookmark"></i> 挂单
+                    <button onclick="CashierModule.selectPayment('visa')" 
+                            class="payment-btn py-2 rounded-lg text-xs font-bold border bg-white hover:bg-gray-50" data-payment="visa">
+                        💳Visa
+                    </button>
+                    <button onclick="CashierModule.selectPayment('apple_pay')" 
+                            class="payment-btn py-2 rounded-lg text-xs font-bold border bg-white hover:bg-gray-50" data-payment="apple_pay">
+                        📱Apple
+                    </button>
+                    <button onclick="CashierModule.selectPayment('stc_pay')" 
+                            class="payment-btn py-2 rounded-lg text-xs font-bold border bg-white hover:bg-gray-50" data-payment="stc_pay">
+                        📱STC
                     </button>
                 </div>
+                <div id="selectedPayment" class="text-xs text-blue-600 mt-1 text-center">请选择支付方式</div>
+            </div>
+
+            <!-- 混合支付 -->
+            <div class="mt-1">
+                <button onclick="CashierModule.showSplitPayment()" class="text-xs text-gray-400 hover:text-blue-600">
+                    🔀 混合支付
+                </button>
+                <div id="splitPaymentArea" class="hidden mt-1 space-y-1">
+                    <div class="flex gap-1 items-center">
+                        <span class="text-xs text-gray-500">现金:</span>
+                        <input type="number" id="splitCash" class="w-16 p-1 border rounded text-xs" placeholder="0">
+                        <span class="text-xs text-gray-500">Mada:</span>
+                        <input type="number" id="splitMada" class="w-16 p-1 border rounded text-xs" placeholder="0">
+                        <span class="text-xs text-gray-500">卡:</span>
+                        <input type="number" id="splitCard" class="w-16 p-1 border rounded text-xs" placeholder="0">
+                    </div>
+                    <div class="text-xs text-gray-400">剩余: <span id="splitRemaining">0.00</span> SAR</div>
+                </div>
+            </div>
+
+            <!-- 收款按钮 -->
+            <button onclick="CashierModule.checkout()" class="btn-success w-full py-3 rounded-xl font-bold text-lg mt-2" id="checkoutBtn">
+                <i class="fas fa-check"></i> 完成收款
+            </button>
+
+            <!-- 服务状态 -->
+            <div class="flex gap-1 mt-1">
+                <button onclick="CashierModule.setOrderStatus('pending')" class="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 status-btn" data-status="pending">⏳等待</button>
+                <button onclick="CashierModule.setOrderStatus('in_progress')" class="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 status-btn" data-status="in_progress">🔄施工</button>
+                <button onclick="CashierModule.setOrderStatus('completed')" class="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 status-btn" data-status="completed">✅完成</button>
+                <button onclick="CashierModule.setOrderStatus('delivered')" class="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 status-btn" data-status="delivered">🚗交车</button>
             </div>
         </div>
     </div>
 
-    <!-- ===== 底部状态栏 ===== -->
-    <div class="mt-3 flex justify-between items-center text-xs text-gray-400 bg-white/80 backdrop-blur rounded-xl px-4 py-2">
-        <div>
-            <span>👨‍💼 <span id="cashierStaffName">-</span></span>
-            <span class="mx-3">|</span>
-            <span>🏪 <span id="cashierStoreName">-</span></span>
-        </div>
-        <div>
-            <span id="cashierStatus" class="text-green-600">🟢 在线</span>
-            <span class="mx-3">|</span>
-            <span>今日: <span id="cashierTodayCount">0</span> 单 | <span id="cashierTodayRevenue" class="font-bold text-blue-600">0 SAR</span></span>
+    <!-- ===== 底部队列 ===== -->
+    <div class="glass-card p-3">
+        <div class="flex justify-between items-center text-sm">
+            <div class="flex gap-4">
+                <span>⏳ 等待: <strong class="text-amber-600" id="queuePending">0</strong></span>
+                <span>🔄 施工: <strong class="text-blue-600" id="queueInProgress">0</strong></span>
+                <span>✅ 完成: <strong class="text-green-600" id="queueCompleted">0</strong></span>
+                <span>🚗 交车: <strong class="text-purple-600" id="queueDelivered">0</strong></span>
+            </div>
+            <div class="text-xs text-gray-400">
+                今日收入: <span id="todayRevenue" class="font-bold text-blue-600">0 SAR</span>
+                订单: <span id="todayOrderCount">0</span>
+            </div>
         </div>
     </div>
 
-</div>
-
-<!-- ===== 挂单列表弹窗 ===== -->
-<div id="holdOrdersModal" class="modal-glass hidden">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 mx-4">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-blue-600">📋 挂单列表</h3>
-            <button onclick="CashierModule.closeHoldOrders()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div id="holdOrdersList" class="space-y-2 max-h-80 overflow-auto"></div>
-    </div>
 </div>
 
 <!-- ===== 打印选项弹窗 ===== -->
 <div id="printOptionsModal" class="modal-glass hidden">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 mx-4">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-blue-600">🖨️ 打印选项</h3>
+            <h3 class="text-lg font-bold text-blue-600">🖨️ 打印</h3>
             <button onclick="CashierModule.closePrintOptions()" class="text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -241,37 +276,35 @@
                 <i class="fas fa-receipt"></i> 小票（热敏）
             </button>
             <button onclick="CashierModule.printTaxInvoice()" class="w-full bg-green-600 hover:bg-green-700 py-2.5 rounded-lg text-white font-bold text-sm">
-                <i class="fas fa-file-invoice"></i> 税务发票（ZATCA标准）
+                <i class="fas fa-file-invoice"></i> 税务发票（A4）
             </button>
             <button onclick="CashierModule.closePrintOptions()" class="w-full btn-outline py-2.5 rounded-lg font-bold text-sm">取消</button>
         </div>
     </div>
 </div>
 
-<!-- ===== 新客户快速弹窗 ===== -->
-<div id="newCustomerModal" class="modal-glass hidden">
+<!-- ===== 混合支付弹窗 ===== -->
+<div id="splitPaymentModal" class="modal-glass hidden">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 mx-4">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-blue-600">👤 快速添加客户</h3>
-            <button onclick="CashierModule.closeNewCustomer()" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-lg font-bold text-blue-600">🔀 混合支付</h3>
+            <button onclick="CashierModule.closeSplitPayment()" class="text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
         <div class="space-y-3">
-            <div>
-                <label class="text-xs font-medium text-gray-500">姓名 *</label>
-                <input id="newCustName" class="w-full p-2.5 border rounded-lg text-sm mt-1 bg-gray-50">
+            <div class="text-center text-2xl font-bold text-blue-600" id="splitTotalDisplay">0.00 SAR</div>
+            <div class="grid grid-cols-2 gap-2">
+                <div><label class="text-xs text-gray-500">现金</label><input type="number" id="splitCashAmount" class="w-full p-2 border rounded-lg text-sm" placeholder="0"></div>
+                <div><label class="text-xs text-gray-500">Mada</label><input type="number" id="splitMadaAmount" class="w-full p-2 border rounded-lg text-sm" placeholder="0"></div>
+                <div><label class="text-xs text-gray-500">Visa</label><input type="number" id="splitVisaAmount" class="w-full p-2 border rounded-lg text-sm" placeholder="0"></div>
+                <div><label class="text-xs text-gray-500">Apple Pay</label><input type="number" id="splitApplePayAmount" class="w-full p-2 border rounded-lg text-sm" placeholder="0"></div>
             </div>
-            <div>
-                <label class="text-xs font-medium text-gray-500">手机号 *</label>
-                <input id="newCustPhone" class="w-full p-2.5 border rounded-lg text-sm mt-1 bg-gray-50">
+            <div class="text-right text-sm">
+                剩余: <span id="splitRemainingAmount" class="font-bold text-green-600">0.00 SAR</span>
             </div>
-            <div>
-                <label class="text-xs font-medium text-gray-500">车牌号</label>
-                <input id="newCustPlate" class="w-full p-2.5 border rounded-lg text-sm mt-1 bg-gray-50 uppercase">
-            </div>
-            <button onclick="CashierModule.saveNewCustomer()" class="btn-primary w-full py-2.5 rounded-lg font-bold text-sm">
-                保存客户
+            <button onclick="CashierModule.confirmSplitPayment()" class="btn-primary w-full py-2.5 rounded-lg font-bold text-sm">
+                确认混合支付
             </button>
         </div>
     </div>
