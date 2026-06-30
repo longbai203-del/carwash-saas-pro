@@ -1,6 +1,7 @@
 /**
  * permission.js - 权限中心模块
  * 角色管理、菜单管理、权限分配、用户授权、审计日志
+ * 使用 SupabaseService 直接查询，解决表名白名单限制
  */
 (function() {
     'use strict';
@@ -45,6 +46,18 @@
     };
 
     // ============================================================
+    // 获取 Supabase 客户端
+    // ============================================================
+    window.PermissionModule._getClient = function() {
+        var client = window.SupabaseService ? window.SupabaseService.getClient() : null;
+        if (!client) {
+            console.error('[Permission] Supabase 客户端未初始化');
+            return null;
+        }
+        return client;
+    };
+
+    // ============================================================
     // 绑定事件
     // ============================================================
     window.PermissionModule.bindEvents = function() {
@@ -75,10 +88,8 @@
         this.loadMenus();
         this.loadAllPermissions();
         this.loadUsers();
-        this.loadRoleSelects();
         this.loadAuditLogs();
 
-        // 设置默认日期
         if (this.el.auditStartDate) {
             var d = new Date();
             d.setDate(d.getDate() - 7);
@@ -111,7 +122,6 @@
             target.classList.remove('hidden');
         }
 
-        // 刷新对应数据
         if (tab === 'roles') this.loadRoles();
         if (tab === 'menus') this.loadMenus();
         if (tab === 'permissions') this.loadRolePermissions();
@@ -124,18 +134,25 @@
     // ============================================================
     window.PermissionModule.loadRoles = function() {
         var self = this;
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            self.el.rolesList.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">请刷新页面重试</td></tr>';
+            return;
+        }
 
-        AppApi.query('sys_role', {
-            filter: { tenant_id: tenant ? tenant.id : null, store_id: store ? store.id : null },
-            order: { by: 'sort_order', ascending: true }
-        }).then(function(roles) {
-            self.allRoles = roles || [];
-            self.renderRoles(roles || []);
-        }).catch(function(error) {
-            console.error('[Permission] 加载角色失败:', error);
-        });
+        client.from('sys_role')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .then(function(result) {
+                if (result.error) throw result.error;
+                self.allRoles = result.data || [];
+                self.renderRoles(result.data || []);
+                self.loadRoleSelects();
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载角色失败:', error);
+                self.el.rolesList.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">加载失败，请刷新重试</td></tr>';
+            });
     };
 
     window.PermissionModule.renderRoles = function(roles) {
@@ -157,7 +174,6 @@
         }
 
         var html = '';
-        var self = this;
         filtered.forEach(function(r) {
             var statusLabel = r.status === 'active' ? '✅ 启用' : '❌ 禁用';
             var statusColor = r.status === 'active' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
@@ -211,13 +227,15 @@
             return;
         }
 
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
         var user = AppStore.get('currentUser');
 
         var data = {
-            tenant_id: tenant ? tenant.id : null,
-            store_id: store ? store.id : null,
             role_name: name,
             role_code: code,
             status: status,
@@ -225,16 +243,19 @@
             is_system: false,
             is_default: false,
             sort_order: this.allRoles.length + 1,
-            created_by: user ? user.id : null
+            created_by: user ? user.id : null,
+            created_at: new Date().toISOString()
         };
 
-        AppApi.insert('sys_role', data)
-            .then(function() {
+        client.from('sys_role')
+            .insert(data)
+            .select()
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 角色已添加', 'success');
                 self.closeModal('addRoleModal');
                 self.loadRoles();
                 self.loadRoleSelects();
-                // 记录操作日志
                 if (window.PermissionService) {
                     PermissionService.logOperation({
                         operationType: 'role:create',
@@ -255,8 +276,17 @@
 
         if (!confirm('确认删除角色 "' + role.role_name + '"？')) return;
 
-        AppApi.delete('sys_role', roleId)
-            .then(function() {
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
+        client.from('sys_role')
+            .delete()
+            .eq('id', roleId)
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 角色已删除', 'success');
                 self.loadRoles();
                 self.loadRoleSelects();
@@ -278,19 +308,26 @@
     // ============================================================
     window.PermissionModule.loadMenus = function() {
         var self = this;
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            self.el.menuTree.innerHTML = '<div class="text-center text-gray-400 py-8">请刷新页面重试</div>';
+            return;
+        }
 
-        AppApi.query('sys_menu', {
-            filter: { tenant_id: tenant ? tenant.id : null, store_id: store ? store.id : null, is_deleted: false },
-            order: { by: 'sort_order', ascending: true }
-        }).then(function(menus) {
-            self.allMenus = menus || [];
-            self.renderMenus(menus || []);
-            self.loadMenuSelects(menus || []);
-        }).catch(function(error) {
-            console.error('[Permission] 加载菜单失败:', error);
-        });
+        client.from('sys_menu')
+            .select('*')
+            .eq('is_deleted', false)
+            .order('sort_order', { ascending: true })
+            .then(function(result) {
+                if (result.error) throw result.error;
+                self.allMenus = result.data || [];
+                self.renderMenus(result.data || []);
+                self.loadMenuSelects(result.data || []);
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载菜单失败:', error);
+                self.el.menuTree.innerHTML = '<div class="text-center text-gray-400 py-8">加载失败</div>';
+            });
     };
 
     window.PermissionModule.renderMenus = function(menus) {
@@ -302,7 +339,6 @@
             return;
         }
 
-        // 构建树
         var menuMap = {};
         menus.forEach(function(m) {
             menuMap[m.id] = { ...m, children: [] };
@@ -317,7 +353,6 @@
             }
         });
 
-        // 排序
         rootMenus.sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
 
         var html = this.renderMenuTree(rootMenus, 0);
@@ -399,13 +434,15 @@
             return;
         }
 
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
         var user = AppStore.get('currentUser');
 
         var data = {
-            tenant_id: tenant ? tenant.id : null,
-            store_id: store ? store.id : null,
             menu_name: name,
             menu_code: code,
             parent_id: parentId,
@@ -414,11 +451,16 @@
             permission: permission || null,
             sort_order: sort,
             is_visible: isVisible,
-            created_by: user ? user.id : null
+            is_deleted: false,
+            created_by: user ? user.id : null,
+            created_at: new Date().toISOString()
         };
 
-        AppApi.insert('sys_menu', data)
-            .then(function() {
+        client.from('sys_menu')
+            .insert(data)
+            .select()
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 菜单已添加', 'success');
                 self.closeModal('addMenuModal');
                 self.loadMenus();
@@ -442,8 +484,17 @@
 
         if (!confirm('确认删除菜单 "' + menu.menu_name + '"？')) return;
 
-        AppApi.update('sys_menu', menuId, { is_deleted: true })
-            .then(function() {
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
+        client.from('sys_menu')
+            .update({ is_deleted: true, updated_at: new Date().toISOString() })
+            .eq('id', menuId)
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 菜单已删除', 'success');
                 self.loadMenus();
                 if (window.PermissionService) {
@@ -469,7 +520,6 @@
         document.querySelectorAll('.menu-item > div').forEach(function(el) {
             el.style.display = 'none';
         });
-        // 显示根节点
         document.querySelectorAll('.menu-item:not(.menu-item .menu-item) > div').forEach(function(el) {
             el.style.display = 'flex';
         });
@@ -479,25 +529,23 @@
     // 权限分配
     // ============================================================
     window.PermissionModule.loadRoleSelects = function() {
-        var self = this;
         var selects = ['permRoleSelect', 'userPermUserSelect2'];
 
         selects.forEach(function(id) {
             var sel = document.getElementById(id);
             if (sel) {
                 var html = '<option value="">-- 请选择 --</option>';
-                self.allRoles.forEach(function(r) {
+                window.PermissionModule.allRoles.forEach(function(r) {
                     html += '<option value="' + r.id + '">' + r.role_name + ' (' + r.role_code + ')</option>';
                 });
                 sel.innerHTML = html;
             }
         });
 
-        // 用户下拉
-        var userSel = this.el.userPermUserSelect;
+        var userSel = window.PermissionModule.el.userPermUserSelect;
         if (userSel) {
             var html = '<option value="">-- 请选择用户 --</option>';
-            this.allUsers.forEach(function(u) {
+            window.PermissionModule.allUsers.forEach(function(u) {
                 html += '<option value="' + u.id + '">' + (u.name || u.username) + '</option>';
             });
             userSel.innerHTML = html;
@@ -506,17 +554,20 @@
 
     window.PermissionModule.loadAllPermissions = function() {
         var self = this;
-        var tenant = AppStore.get('currentTenant');
+        var client = this._getClient();
+        if (!client) return;
 
-        AppApi.query('sys_permission', {
-            filter: { tenant_id: tenant ? tenant.id : null },
-            order: { by: 'sort_order', ascending: true }
-        }).then(function(perms) {
-            self.allPermissions = perms || [];
-            self.loadPermissionSelects(perms || []);
-        }).catch(function(error) {
-            console.error('[Permission] 加载权限失败:', error);
-        });
+        client.from('sys_permission')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .then(function(result) {
+                if (result.error) throw result.error;
+                self.allPermissions = result.data || [];
+                self.loadPermissionSelects(result.data || []);
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载权限失败:', error);
+            });
     };
 
     window.PermissionModule.loadPermissionSelects = function(perms) {
@@ -541,27 +592,36 @@
 
         this.currentRoleId = roleId;
 
-        // 获取角色的权限
-        AppApi.query('sys_role_permission', {
-            filter: { role_id: roleId }
-        }).then(function(rolePerms) {
-            var permIds = rolePerms.map(function(rp) { return rp.permission_id; });
+        var client = this._getClient();
+        if (!client) {
+            this.el.permissionTree.innerHTML = '<div class="text-center text-gray-400 py-8">数据库连接失败</div>';
+            return;
+        }
 
-            var html = '';
-            self.allPermissions.forEach(function(p) {
-                var checked = permIds.indexOf(p.id) !== -1;
-                html += '<div class="flex items-center gap-3 p-2 border-b hover:bg-gray-50">';
-                html += '<input type="checkbox" id="perm_' + p.id + '" ' + (checked ? 'checked' : '') + ' value="' + p.id + '" class="w-4 h-4">';
-                html += '<label for="perm_' + p.id + '" class="text-sm flex-1">' + p.permission_name + '</label>';
-                html += '<span class="text-xs text-gray-400">' + p.permission_code + '</span>';
-                html += '<span class="text-xs text-gray-400">' + p.permission_type + '</span>';
-                html += '</div>';
+        client.from('sys_role_permission')
+            .select('permission_id')
+            .eq('role_id', roleId)
+            .then(function(result) {
+                if (result.error) throw result.error;
+                var permIds = (result.data || []).map(function(rp) { return rp.permission_id; });
+
+                var html = '';
+                self.allPermissions.forEach(function(p) {
+                    var checked = permIds.indexOf(p.id) !== -1;
+                    html += '<div class="flex items-center gap-3 p-2 border-b hover:bg-gray-50">';
+                    html += '<input type="checkbox" id="perm_' + p.id + '" ' + (checked ? 'checked' : '') + ' value="' + p.id + '" class="w-4 h-4">';
+                    html += '<label for="perm_' + p.id + '" class="text-sm flex-1">' + p.permission_name + '</label>';
+                    html += '<span class="text-xs text-gray-400">' + p.permission_code + '</span>';
+                    html += '<span class="text-xs text-gray-400">' + p.permission_type + '</span>';
+                    html += '</div>';
+                });
+
+                self.el.permissionTree.innerHTML = html;
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载角色权限失败:', error);
+                self.el.permissionTree.innerHTML = '<div class="text-center text-gray-400 py-8">加载失败</div>';
             });
-
-            self.el.permissionTree.innerHTML = html;
-        }).catch(function(error) {
-            console.error('[Permission] 加载角色权限失败:', error);
-        });
     };
 
     window.PermissionModule.savePermissions = function() {
@@ -573,43 +633,40 @@
             return;
         }
 
-        // 收集选中的权限
         var checkedPerms = [];
         document.querySelectorAll('#permissionTree input[type="checkbox"]:checked').forEach(function(cb) {
             checkedPerms.push(cb.value);
         });
 
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
         var user = AppStore.get('currentUser');
 
         // 先删除旧的权限关联
-        AppApi.query('sys_role_permission', { filter: { role_id: roleId } })
-            .then(function(existing) {
-                var deletePromises = existing.map(function(rp) {
-                    return AppApi.delete('sys_role_permission', rp.id);
-                });
-                return Promise.all(deletePromises);
-            })
+        client.from('sys_role_permission')
+            .delete()
+            .eq('role_id', roleId)
             .then(function() {
-                // 插入新的权限关联
+                if (checkedPerms.length === 0) return Promise.resolve();
+
                 var insertData = checkedPerms.map(function(permId) {
                     return {
                         role_id: roleId,
                         permission_id: permId,
-                        tenant_id: tenant ? tenant.id : null,
-                        store_id: store ? store.id : null,
-                        created_by: user ? user.id : null
+                        created_by: user ? user.id : null,
+                        created_at: new Date().toISOString()
                     };
                 });
 
-                if (insertData.length === 0) return Promise.resolve();
-
-                return AppApi.insert('sys_role_permission', insertData);
+                return client.from('sys_role_permission')
+                    .insert(insertData);
             })
             .then(function() {
                 self.toast('✅ 权限已保存', 'success');
-                // 清除权限缓存
                 if (window.PermissionService) {
                     PermissionService.clearCache();
                 }
@@ -631,14 +688,21 @@
     // ============================================================
     window.PermissionModule.loadUsers = function() {
         var self = this;
-        AppApi.query('users', {
-            order: { by: 'created_at', ascending: false }
-        }).then(function(users) {
-            self.allUsers = users || [];
-            self.loadRoleSelects();
-        }).catch(function(error) {
-            console.error('[Permission] 加载用户失败:', error);
-        });
+
+        var client = this._getClient();
+        if (!client) return;
+
+        client.from('users')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .then(function(result) {
+                if (result.error) throw result.error;
+                self.allUsers = result.data || [];
+                self.loadRoleSelects();
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载用户失败:', error);
+            });
     };
 
     window.PermissionModule.loadUserPermissions = function() {
@@ -652,40 +716,51 @@
 
         this.currentUserId = userId;
 
-        AppApi.query('sys_user_permission', {
-            filter: { user_id: userId }
-        }).then(function(userPerms) {
-            if (!userPerms || userPerms.length === 0) {
-                self.el.userPermissionList.innerHTML = '<div class="text-center text-gray-400 py-8">该用户暂无单独授权</div>';
-                return;
-            }
+        var client = this._getClient();
+        if (!client) {
+            this.el.userPermissionList.innerHTML = '<div class="text-center text-gray-400 py-8">数据库连接失败</div>';
+            return;
+        }
 
-            var html = '';
-            var permMap = {};
-            self.allPermissions.forEach(function(p) {
-                permMap[p.id] = p;
+        client.from('sys_user_permission')
+            .select('*')
+            .eq('user_id', userId)
+            .then(function(result) {
+                if (result.error) throw result.error;
+                var userPerms = result.data || [];
+
+                if (userPerms.length === 0) {
+                    self.el.userPermissionList.innerHTML = '<div class="text-center text-gray-400 py-8">该用户暂无单独授权</div>';
+                    return;
+                }
+
+                var html = '';
+                var permMap = {};
+                self.allPermissions.forEach(function(p) {
+                    permMap[p.id] = p;
+                });
+
+                userPerms.forEach(function(up) {
+                    var p = permMap[up.permission_id];
+                    if (!p) return;
+                    var validFrom = up.valid_from ? new Date(up.valid_from).toLocaleDateString() : '-';
+                    var validTo = up.valid_to ? new Date(up.valid_to).toLocaleDateString() : '-';
+
+                    html += '<div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg border">';
+                    html += '<div>';
+                    html += '<span class="font-medium">' + p.permission_name + '</span>';
+                    html += '<span class="text-xs text-gray-400 ml-2">' + p.permission_code + '</span>';
+                    html += '<span class="text-xs text-gray-400 ml-2">有效: ' + validFrom + ' ~ ' + validTo + '</span>';
+                    html += '</div>';
+                    html += '<button onclick="PermissionModule.deleteUserPermission(\'' + up.id + '\')" class="text-red-500 hover:text-red-700 text-xs">🗑️</button>';
+                    html += '</div>';
+                });
+
+                self.el.userPermissionList.innerHTML = html;
+            })
+            .catch(function(error) {
+                console.error('[Permission] 加载用户权限失败:', error);
             });
-
-            userPerms.forEach(function(up) {
-                var p = permMap[up.permission_id];
-                if (!p) return;
-                var validFrom = up.valid_from ? new Date(up.valid_from).toLocaleDateString() : '-';
-                var validTo = up.valid_to ? new Date(up.valid_to).toLocaleDateString() : '-';
-
-                html += '<div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg border">';
-                html += '<div>';
-                html += '<span class="font-medium">' + p.permission_name + '</span>';
-                html += '<span class="text-xs text-gray-400 ml-2">' + p.permission_code + '</span>';
-                html += '<span class="text-xs text-gray-400 ml-2">有效: ' + validFrom + ' ~ ' + validTo + '</span>';
-                html += '</div>';
-                html += '<button onclick="PermissionModule.deleteUserPermission(\'' + up.id + '\')" class="text-red-500 hover:text-red-700 text-xs">🗑️</button>';
-                html += '</div>';
-            });
-
-            self.el.userPermissionList.innerHTML = html;
-        }).catch(function(error) {
-            console.error('[Permission] 加载用户权限失败:', error);
-        });
     };
 
     window.PermissionModule.addUserPermission = function() {
@@ -711,8 +786,12 @@
             return;
         }
 
-        var tenant = AppStore.get('currentTenant');
-        var store = AppStore.get('currentStore');
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
         var user = AppStore.get('currentUser');
 
         var data = {
@@ -721,13 +800,15 @@
             is_granted: true,
             valid_from: validFrom,
             valid_to: validTo,
-            tenant_id: tenant ? tenant.id : null,
-            store_id: store ? store.id : null,
-            created_by: user ? user.id : null
+            created_by: user ? user.id : null,
+            created_at: new Date().toISOString()
         };
 
-        AppApi.insert('sys_user_permission', data)
-            .then(function() {
+        client.from('sys_user_permission')
+            .insert(data)
+            .select()
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 用户授权已添加', 'success');
                 self.closeModal('addUserPermModal');
                 self.loadUserPermissions();
@@ -749,8 +830,17 @@
         var self = this;
         if (!confirm('确认移除该用户权限？')) return;
 
-        AppApi.delete('sys_user_permission', upId)
-            .then(function() {
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
+
+        client.from('sys_user_permission')
+            .delete()
+            .eq('id', upId)
+            .then(function(result) {
+                if (result.error) throw result.error;
                 self.toast('✅ 权限已移除', 'success');
                 self.loadUserPermissions();
                 if (window.PermissionService) {
@@ -767,37 +857,45 @@
     // ============================================================
     window.PermissionModule.loadAuditLogs = function() {
         var self = this;
+
+        var client = this._getClient();
+        if (!client) {
+            self.el.auditList.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">请刷新页面重试</td></tr>';
+            return;
+        }
+
         var startDate = this.el.auditStartDate ? this.el.auditStartDate.value : '';
         var endDate = this.el.auditEndDate ? this.el.auditEndDate.value : '';
         var search = this.el.auditSearch ? this.el.auditSearch.value.trim().toLowerCase() : '';
 
-        AppApi.query('sys_audit_log', {
-            order: { by: 'created_at', ascending: false },
-            limit: 100
-        }).then(function(logs) {
-            var filtered = logs || [];
+        var query = client.from('sys_audit_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
 
-            if (startDate) {
-                filtered = filtered.filter(function(l) {
-                    return l.created_at && l.created_at >= startDate;
-                });
-            }
-            if (endDate) {
-                filtered = filtered.filter(function(l) {
-                    return l.created_at && l.created_at <= endDate + 'T23:59:59';
-                });
-            }
+        if (startDate) {
+            query = query.gte('created_at', startDate);
+        }
+        if (endDate) {
+            query = query.lte('created_at', endDate + 'T23:59:59');
+        }
+
+        query.then(function(result) {
+            if (result.error) throw result.error;
+            var logs = result.data || [];
+
             if (search) {
-                filtered = filtered.filter(function(l) {
+                logs = logs.filter(function(l) {
                     return (l.username || '').toLowerCase().includes(search) ||
                            (l.action || '').toLowerCase().includes(search) ||
                            (l.resource_name || '').toLowerCase().includes(search);
                 });
             }
 
-            self.renderAuditLogs(filtered);
+            self.renderAuditLogs(logs);
         }).catch(function(error) {
             console.error('[Permission] 加载审计日志失败:', error);
+            self.el.auditList.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">加载失败</td></tr>';
         });
     };
 
@@ -835,48 +933,57 @@
 
     window.PermissionModule.exportAuditLogs = function() {
         var self = this;
-        var logs = [];
 
-        AppApi.query('sys_audit_log', {
-            order: { by: 'created_at', ascending: false },
-            limit: 1000
-        }).then(function(data) {
-            logs = data || [];
-            if (logs.length === 0) {
-                self.toast('暂无数据可导出', 'error');
-                return;
-            }
+        var client = this._getClient();
+        if (!client) {
+            this.toast('数据库连接失败', 'error');
+            return;
+        }
 
-            if (typeof window.XLSX === 'undefined') {
-                self.toast('XLSX库未加载', 'error');
-                return;
-            }
+        client.from('sys_audit_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1000)
+            .then(function(result) {
+                if (result.error) throw result.error;
+                var logs = result.data || [];
 
-            var exportData = [['时间', '用户', '操作', '资源类型', '资源名称', '变更前', '变更后']];
-            logs.forEach(function(l) {
-                exportData.push([
-                    l.created_at ? new Date(l.created_at).toLocaleString() : '',
-                    l.username || '系统',
-                    l.action || '',
-                    l.resource_type || '',
-                    l.resource_name || '',
-                    l.old_value ? JSON.stringify(l.old_value).substring(0, 100) : '',
-                    l.new_value ? JSON.stringify(l.new_value).substring(0, 100) : ''
-                ]);
+                if (logs.length === 0) {
+                    self.toast('暂无数据可导出', 'error');
+                    return;
+                }
+
+                if (typeof window.XLSX === 'undefined') {
+                    self.toast('XLSX库未加载', 'error');
+                    return;
+                }
+
+                var exportData = [['时间', '用户', '操作', '资源类型', '资源名称', '变更前', '变更后']];
+                logs.forEach(function(l) {
+                    exportData.push([
+                        l.created_at ? new Date(l.created_at).toLocaleString() : '',
+                        l.username || '系统',
+                        l.action || '',
+                        l.resource_type || '',
+                        l.resource_name || '',
+                        l.old_value ? JSON.stringify(l.old_value).substring(0, 100) : '',
+                        l.new_value ? JSON.stringify(l.new_value).substring(0, 100) : ''
+                    ]);
+                });
+
+                try {
+                    var ws = window.XLSX.utils.aoa_to_sheet(exportData);
+                    var wb = window.XLSX.utils.book_new();
+                    window.XLSX.utils.book_append_sheet(wb, ws, '审计日志');
+                    window.XLSX.writeFile(wb, '审计日志_' + new Date().toISOString().split('T')[0] + '.xlsx');
+                    self.toast('✅ 审计日志已导出', 'success');
+                } catch(e) {
+                    self.toast('❌ 导出失败: ' + e.message, 'error');
+                }
+            })
+            .catch(function(error) {
+                self.toast('❌ 加载数据失败: ' + error.message, 'error');
             });
-
-            try {
-                var ws = window.XLSX.utils.aoa_to_sheet(exportData);
-                var wb = window.XLSX.utils.book_new();
-                window.XLSX.utils.book_append_sheet(wb, ws, '审计日志');
-                window.XLSX.writeFile(wb, '审计日志_' + new Date().toISOString().split('T')[0] + '.xlsx');
-                self.toast('✅ 审计日志已导出', 'success');
-            } catch(e) {
-                self.toast('❌ 导出失败: ' + e.message, 'error');
-            }
-        }).catch(function(error) {
-            self.toast('❌ 加载数据失败: ' + error.message, 'error');
-        });
     };
 
     // ============================================================
@@ -892,6 +999,7 @@
     // ============================================================
     window.PermissionModule.exportData = function() {
         var self = this;
+
         if (typeof window.XLSX === 'undefined') {
             this.toast('XLSX库未加载', 'error');
             return;
